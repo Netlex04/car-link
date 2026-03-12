@@ -1,0 +1,381 @@
+openapi: 3.1.0
+info:
+  title: CarMeet Registration-Service API
+  version: 1.0.0
+servers:
+  - url: http://localhost:3002
+tags:
+  - name: Users
+  - name: Vehicles
+  - name: Registrations
+
+paths:
+  /users:
+    post:
+      tags: [Users]
+      summary: Create user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /users/{userId}:
+    get:
+      tags: [Users]
+      summary: Get user by id
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{userId}/vehicles:
+    get:
+      tags: [Vehicles]
+      summary: List vehicles for a user
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vehicle"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags: [Vehicles]
+      summary: Create vehicle for a user
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VehicleCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vehicle"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /vehicles/{vehicleId}:
+    get:
+      tags: [Vehicles]
+      summary: Get vehicle by id
+      parameters:
+        - $ref: "#/components/parameters/VehicleId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vehicle"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Vehicles]
+      summary: Update vehicle
+      parameters:
+        - $ref: "#/components/parameters/VehicleId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VehicleUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vehicle"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Vehicles]
+      summary: Delete vehicle
+      parameters:
+        - $ref: "#/components/parameters/VehicleId"
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /registrations:
+    get:
+      tags: [Registrations]
+      summary: List registrations (filter by meetId and/or userId)
+      parameters:
+        - name: meetId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [PARTICIPANT, VISITOR]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Registration"
+
+    post:
+      tags: [Registrations]
+      summary: Create registration for a meet (participant or visitor)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegistrationCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Registration"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: User or Vehicle not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Duplicate registration (same userId + meetId)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /registrations/{registrationId}:
+    get:
+      tags: [Registrations]
+      summary: Get registration by id
+      parameters:
+        - $ref: "#/components/parameters/RegistrationId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Registration"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Registrations]
+      summary: Cancel registration (soft delete)
+      parameters:
+        - $ref: "#/components/parameters/RegistrationId"
+      responses:
+        "200":
+          description: Cancelled (status=CANCELLED)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Registration"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  parameters:
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    VehicleId:
+      name: vehicleId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    RegistrationId:
+      name: registrationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      required: [message]
+      properties:
+        message: { type: string }
+        details: { type: string }
+
+    User:
+      type: object
+      additionalProperties: false
+      required: [userId, displayName, email, createdAt]
+      properties:
+        userId: { type: string, format: uuid }
+        displayName: { type: string, minLength: 1 }
+        email: { type: string, format: email }
+        createdAt: { type: string, format: date-time }
+
+    UserCreate:
+      type: object
+      additionalProperties: false
+      required: [displayName, email]
+      properties:
+        displayName: { type: string, minLength: 1 }
+        email: { type: string, format: email }
+
+    Vehicle:
+      type: object
+      additionalProperties: false
+      required: [vehicleId, userId, make, model]
+      properties:
+        vehicleId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        make: { type: string, minLength: 1 }
+        model: { type: string, minLength: 1 }
+        year: { type: integer, minimum: 1900 }
+        color: { type: string }
+        powerHp: { type: integer, minimum: 0 }
+        plateOptional: { type: string }
+        notes: { type: string }
+
+    VehicleCreate:
+      type: object
+      additionalProperties: false
+      required: [make, model]
+      properties:
+        make: { type: string, minLength: 1 }
+        model: { type: string, minLength: 1 }
+        year: { type: integer, minimum: 1900 }
+        color: { type: string }
+        powerHp: { type: integer, minimum: 0 }
+        plateOptional: { type: string }
+        notes: { type: string }
+
+    VehicleUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        make: { type: string, minLength: 1 }
+        model: { type: string, minLength: 1 }
+        year: { type: integer, minimum: 1900 }
+        color: { type: string }
+        powerHp: { type: integer, minimum: 0 }
+        plateOptional: { type: string }
+        notes: { type: string }
+
+    Registration:
+      type: object
+      additionalProperties: false
+      required: [registrationId, meetId, userId, role, status, createdAt]
+      properties:
+        registrationId: { type: string, format: uuid }
+        meetId:
+          type: string
+          format: uuid
+          description: MeetId from Meet-Service (no DB FK here)
+        userId: { type: string, format: uuid }
+        vehicleId:
+          type: [string, "null"]
+          format: uuid
+          description: Nullable for VISITOR registrations
+        role:
+          type: string
+          enum: [PARTICIPANT, VISITOR]
+        status:
+          type: string
+          enum: [CONFIRMED, CANCELLED]
+        createdAt: { type: string, format: date-time }
+        checkInAt:
+          type: [string, "null"]
+          format: date-time
+
+    RegistrationCreate:
+      type: object
+      additionalProperties: false
+      required: [meetId, userId, role]
+      properties:
+        meetId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        role:
+          type: string
+          enum: [PARTICIPANT, VISITOR]
+        vehicleId:
+          type: [string, "null"]
+          format: uuid
+          description: Required if role=PARTICIPANT, must be null if VISITOR
