@@ -12,6 +12,6 @@ async function create(req, res) {}
 
 async function read(req, res) {}
 
-async function update(req, res) {}
+// async function update(req, res) {}
 
-async function remove(req, res) {}
+// async function remove(req, res) {}
