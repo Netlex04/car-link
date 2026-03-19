@@ -18,16 +18,6 @@ const logger = logging.default("main");
 
 const app = express();
 
-app.use((req, res, next) => {
-  logger.info(`${req.method} ${req.originalUrl}`);
-  next();
-});
-
-app.get("/", (req, res) => {
-  res.status(200);
-  res.send("Hallo Express");
-});
-
 const server = app.listen(config.port, config.host, () => {
   logger.info(`Server lauscht auf ${config.host}:${config.port}`);
 });
@@ -35,6 +25,7 @@ const server = app.listen(config.port, config.host, () => {
 process.on("exit", () => {
   console.log("Beende Server.");
   server.close();
+  // db.close();
 });
 
 process.on("SIGHUP", () => process.exit(128 + 1));

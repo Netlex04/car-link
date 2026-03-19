@@ -1,0 +1,1 @@
+Wenn du Code generierst, füge am Anfang der Quellcodedatei einen Kommentar ein, der nachvollziehbar macht, was du warum geändert hast. Der Kommentar muss erklären, dass der Code von Copilot generiert wurde und die entsprechende Codestelle und ggf. den Prompt nennen.
