@@ -51,6 +51,50 @@ paths:
                 $ref: "#/components/schemas/User"
         "404":
           $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Users]
+      summary: Update user
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: [Users]
+      summary: Delete user
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: User is still referenced by registrations or vehicles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /users/{userId}/vehicles:
     get:
@@ -139,6 +183,12 @@ paths:
           description: Deleted
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          description: Vehicle is still referenced by one or more registrations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /registrations:
     get:
@@ -219,6 +269,28 @@ paths:
                 $ref: "#/components/schemas/Registration"
         "404":
           $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Registrations]
+      summary: Update registration
+      parameters:
+        - $ref: "#/components/parameters/RegistrationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegistrationUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Registration"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
     delete:
       tags: [Registrations]
       summary: Cancel registration (soft delete)
@@ -278,78 +350,144 @@ components:
       additionalProperties: false
       required: [message]
       properties:
-        message: { type: string }
-        details: { type: string }
+        message:
+          type: string
+        details:
+          type: string
 
     User:
       type: object
       additionalProperties: false
       required: [userId, displayName, email, createdAt]
       properties:
-        userId: { type: string, format: uuid }
-        displayName: { type: string, minLength: 1 }
-        email: { type: string, format: email }
-        createdAt: { type: string, format: date-time }
+        userId:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        createdAt:
+          type: string
+          format: date-time
 
     UserCreate:
       type: object
       additionalProperties: false
       required: [displayName, email]
       properties:
-        displayName: { type: string, minLength: 1 }
-        email: { type: string, format: email }
+        displayName:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+
+    UserUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        displayName:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
 
     Vehicle:
       type: object
       additionalProperties: false
       required: [vehicleId, userId, make, model]
       properties:
-        vehicleId: { type: string, format: uuid }
-        userId: { type: string, format: uuid }
-        make: { type: string, minLength: 1 }
-        model: { type: string, minLength: 1 }
-        year: { type: integer, minimum: 1900 }
-        color: { type: string }
-        powerHp: { type: integer, minimum: 0 }
-        plateOptional: { type: string }
-        notes: { type: string }
+        vehicleId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        make:
+          type: string
+          minLength: 1
+        model:
+          type: string
+          minLength: 1
+        year:
+          type: integer
+          minimum: 1900
+        color:
+          type: string
+        powerHp:
+          type: integer
+          minimum: 0
+        plateOptional:
+          type: string
+        notes:
+          type: string
 
     VehicleCreate:
       type: object
       additionalProperties: false
       required: [make, model]
       properties:
-        make: { type: string, minLength: 1 }
-        model: { type: string, minLength: 1 }
-        year: { type: integer, minimum: 1900 }
-        color: { type: string }
-        powerHp: { type: integer, minimum: 0 }
-        plateOptional: { type: string }
-        notes: { type: string }
+        make:
+          type: string
+          minLength: 1
+        model:
+          type: string
+          minLength: 1
+        year:
+          type: integer
+          minimum: 1900
+        color:
+          type: string
+        powerHp:
+          type: integer
+          minimum: 0
+        plateOptional:
+          type: string
+        notes:
+          type: string
 
     VehicleUpdate:
       type: object
       additionalProperties: false
       properties:
-        make: { type: string, minLength: 1 }
-        model: { type: string, minLength: 1 }
-        year: { type: integer, minimum: 1900 }
-        color: { type: string }
-        powerHp: { type: integer, minimum: 0 }
-        plateOptional: { type: string }
-        notes: { type: string }
+        make:
+          type: string
+          minLength: 1
+        model:
+          type: string
+          minLength: 1
+        year:
+          type: integer
+          minimum: 1900
+        color:
+          type: string
+        powerHp:
+          type: integer
+          minimum: 0
+        plateOptional:
+          type: string
+        notes:
+          type: string
 
     Registration:
       type: object
       additionalProperties: false
       required: [registrationId, meetId, userId, role, status, createdAt]
       properties:
-        registrationId: { type: string, format: uuid }
+        registrationId:
+          type: string
+          format: uuid
         meetId:
           type: string
           format: uuid
           description: MeetId from Meet-Service (no DB FK here)
-        userId: { type: string, format: uuid }
+        userId:
+          type: string
+          format: uuid
         vehicleId:
           type: [string, "null"]
           format: uuid
@@ -360,7 +498,9 @@ components:
         status:
           type: string
           enum: [CONFIRMED, CANCELLED]
-        createdAt: { type: string, format: date-time }
+        createdAt:
+          type: string
+          format: date-time
         checkInAt:
           type: [string, "null"]
           format: date-time
@@ -370,8 +510,12 @@ components:
       additionalProperties: false
       required: [meetId, userId, role]
       properties:
-        meetId: { type: string, format: uuid }
-        userId: { type: string, format: uuid }
+        meetId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
         role:
           type: string
           enum: [PARTICIPANT, VISITOR]
@@ -379,3 +523,21 @@ components:
           type: [string, "null"]
           format: uuid
           description: Required if role=PARTICIPANT, must be null if VISITOR
+
+    RegistrationUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        vehicleId:
+          type: [string, "null"]
+          format: uuid
+          description: Nullable for VISITOR registrations
+        role:
+          type: string
+          enum: [PARTICIPANT, VISITOR]
+        status:
+          type: string
+          enum: [CONFIRMED, CANCELLED]
+        checkInAt:
+          type: [string, "null"]
+          format: date-time
