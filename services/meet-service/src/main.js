@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express from "express";
 import logging from "logging";
 import process from "node:process";
+import controllers from "./controllers/index.js";
 
 console.log("Erste Schritte mit Express");
 console.log("==========================");
@@ -17,6 +18,8 @@ const config = {
 const logger = logging.default("main");
 
 const app = express();
+
+controllers.forEach((registerRoute) => registerRoute(app));
 
 const server = app.listen(config.port, config.host, () => {
   logger.info(`Server lauscht auf ${config.host}:${config.port}`);
