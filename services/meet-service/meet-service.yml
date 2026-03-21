@@ -145,12 +145,6 @@ paths:
                 $ref: "#/components/schemas/Meet"
         "400":
           $ref: "#/components/responses/BadRequest"
-        "404":
-          description: Venue not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /meets/{meetId}:
     get:
