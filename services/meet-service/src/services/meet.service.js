@@ -5,8 +5,13 @@ import { query, withTransaction } from "../database.js";
 import { throwError } from "../utils.js";
 
 const sql = {
-  selectAll: "SELECT * FROM meet",
-  selectById: "SELECT * FROM meet WHERE meet_id = $1",
+  selectAll: `SELECT m.*, v.name AS venue_name, v.city AS venue_city, v.country AS venue_country
+              FROM meet m
+              JOIN venue v ON m.venue_id = v.venue_id`,
+  selectById: `SELECT m.*, v.name AS venue_name, v.city AS venue_city, v.country AS venue_country
+                FROM meet m
+                JOIN venue v ON m.venue_id = v.venue_id
+                WHERE m.meet_id = $1`,
   selectVenue: "SELECT * FROM venue WHERE venue_id = $1",
   insert: `INSERT INTO meet (title, description, start_at, end_at, status, venue_id, organizer_user_id, max_participants, max_visitors)
             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
@@ -15,9 +20,19 @@ const sql = {
   cancel: "UPDATE meet SET status = 'CANCELLED' WHERE meet_id = $1 RETURNING *",
 };
 
-function rowToMeet(row) {
+function rowToVenueSummary(row) {
   if (!row) return null;
   return {
+    venueId: row.venue_id,
+    name: row.name,
+    city: row.city,
+    country: row.country,
+  };
+}
+
+function rowToMeet(row) {
+  if (!row) return null;
+  const meet = {
     meetId: row.meet_id,
     title: row.title,
     description: row.description || undefined,
@@ -30,6 +45,13 @@ function rowToMeet(row) {
     maxVisitors: row.max_visitors,
     createdAt: row.created_at?.toISOString?.() || row.created_at,
   };
+
+  const venueSummary = rowToVenueSummary(row);
+  if (venueSummary) {
+    meet.venue = venueSummary;
+  }
+
+  return meet;
 }
 
 function validateMeetCreate(meet) {
@@ -102,27 +124,27 @@ export async function search(filters = {}) {
   const params = [];
 
   if (filters.status) {
-    conditions.push(`status = $${params.length + 1}`);
+    conditions.push(`m.status = $${params.length + 1}`);
     params.push(String(filters.status));
   }
   if (filters.from) {
-    conditions.push(`start_at >= $${params.length + 1}`);
+    conditions.push(`m.start_at >= $${params.length + 1}`);
     params.push(new Date(filters.from));
   }
   if (filters.to) {
-    conditions.push(`start_at <= $${params.length + 1}`);
+    conditions.push(`m.start_at <= $${params.length + 1}`);
     params.push(new Date(filters.to));
   }
   if (filters.q) {
     conditions.push(
-      `(title ILIKE $${params.length + 1} OR description ILIKE $${params.length + 1})`,
+      `(m.title ILIKE $${params.length + 1} OR m.description ILIKE $${params.length + 1})`,
     );
     params.push(`%${filters.q}%`);
   }
 
   const where = conditions.length ? ` WHERE ${conditions.join(" AND ")}` : "";
   const result = await query(
-    `SELECT * FROM meet${where} ORDER BY start_at`,
+    `${sql.selectAll}${where} ORDER BY m.start_at`,
     params,
   );
   return result.rows.map(rowToMeet);
@@ -147,7 +169,8 @@ export async function create(meet) {
     return result.rows[0];
   });
 
-  return rowToMeet(created);
+  const response = await query(sql.selectById, [created.meet_id]);
+  return rowToMeet(response.rows[0]);
 }
 
 export async function read(id) {
@@ -201,7 +224,8 @@ export async function update(id, meet) {
     return res.rows[0];
   });
 
-  return rowToMeet(result);
+  const response = await query(sql.selectById, [id]);
+  return rowToMeet(response.rows[0]);
 }
 
 export async function remove(id) {
@@ -219,5 +243,6 @@ export async function remove(id) {
     return res.rows[0];
   });
 
-  return rowToMeet(result);
+  const response = await query(sql.selectById, [id]);
+  return rowToMeet(response.rows[0]);
 }

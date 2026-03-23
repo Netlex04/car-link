@@ -22,11 +22,6 @@ app.use(express.json());
 
 controllers.forEach((registerRoute) => registerRoute(app));
 
-app.use((err, req, res, next) => {
-  const status = err.httpStatus || 500;
-  res.status(status).json({ message: err.message || "Internal Server Error" });
-});
-
 const server = app.listen(config.port, config.host, () => {
   logger.info(`Server lauscht auf ${config.host}:${config.port}`);
 });
