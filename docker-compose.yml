@@ -7,7 +7,7 @@ services:
       POSTGRES_DB: registration
     ports: ["5432:5432"]
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata-registration:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d registration"]
       interval: 5s
@@ -16,7 +16,7 @@ services:
 
   registration-service:
     build: ./services/registration-service
-    ports: ["3000:3000"]
+    ports: ["3001:3001"]
     environment:
       DB_HOST: postgres-registration
       DB_PORT: 5432
@@ -35,7 +35,7 @@ services:
       POSTGRES_DB: meet
     ports: ["5433:5432"]
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata-meet:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d meet"]
       interval: 5s
@@ -44,7 +44,7 @@ services:
 
   meet-service:
     build: ./services/meet-service
-    ports: ["3001:3001"]
+    ports: ["3000:3000"]
     environment:
       DB_HOST: postgres-meet
       DB_PORT: 5432
@@ -56,4 +56,5 @@ services:
         condition: service_healthy
 
 volumes:
-  pgdata:
+  pgdata-registration:
+  pgdata-meet:

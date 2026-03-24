@@ -10,7 +10,12 @@ dotenv.config();
 
 const config = {
   host: process.env.LISTEN_HOST || "",
-  port: process.env.LISTEN_PORT || 9000,
+  port: process.env.LISTEN_PORT || 3001,
+  mqtt: {
+    broker: process.env.MQTT_BROKER || "wss://mqtt.zimolong.eu",
+    username: process.env.MQTT_USERNAME || "dhbw",
+    password: process.env.MQTT_PASSWORD || "dhbw",
+  },
 };
 
 const logger = logging.default("main");

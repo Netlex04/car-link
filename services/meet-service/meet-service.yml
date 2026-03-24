@@ -267,6 +267,9 @@ components:
           type: number
         notes:
           type: string
+        createdAt:
+          type: string
+          format: date-time
 
     VenueSummary:
       type: object
