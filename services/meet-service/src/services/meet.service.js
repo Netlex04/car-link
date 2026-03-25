@@ -24,9 +24,9 @@ function rowToVenueSummary(row) {
   if (!row) return null;
   return {
     venueId: row.venue_id,
-    name: row.name,
-    city: row.city,
-    country: row.country,
+    name: row.venue_name,
+    city: row.venue_city,
+    country: row.venue_country,
   };
 }
 
