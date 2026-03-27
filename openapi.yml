@@ -1,21 +1,33 @@
-# Copilot-generiert: Kombinierte OpenAPI-Spezifikation aus meet-service.yml und registration-service.yml
-# Zweck: API-Gateway-basierter Single-Entry-Point für alle CarLink Services
+# Copilot-generated combined OpenAPI file
+# Zweck: Zusammenführung von meet-service und registration-service für API Gateway / central API contract.
+# Originalquellen:
+# - services/meet-service/meet-service.yml
+# - services/registration-service/registration-service.yml
+
 openapi: 3.1.0
 info:
-  title: CarMeet Combined API
+  title: CarMeet Unified API (Meet + Registration)
   version: 1.0.0
+  description: |
+    Kombinierte OpenAPI-Spezifikation für den Meet-Service und den Registration-Service.
+    Diese Datei kann als Basis für ein API Gateway oder zentrale API-Dokumentation verwendet werden.
 servers:
+  - url: http://localhost:8080
+    description: Gateway / unified entrypoint (Proxy zu den jeweiligen Microservices)
   - url: http://localhost:3000
-    description: Meet-Service
+    description: Meet-Service Direkt
   - url: http://localhost:3001
-    description: Registration-Service
+    description: Registration-Service Direkt
+
 tags:
   - name: Venues
   - name: Meets
   - name: Users
   - name: Vehicles
   - name: Registrations
+
 paths:
+  # --- Meet-Service Endpunkte ---
   /venues:
     get:
       tags: [Venues]
@@ -47,6 +59,7 @@ paths:
                 $ref: "#/components/schemas/Venue"
         "400":
           $ref: "#/components/responses/BadRequest"
+
   /venues/{venueId}:
     get:
       tags: [Venues]
@@ -100,6 +113,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
   /meets:
     get:
       tags: [Meets]
@@ -150,6 +164,7 @@ paths:
                 $ref: "#/components/schemas/MeetResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
+
   /meets/{meetId}:
     get:
       tags: [Meets]
@@ -201,6 +216,8 @@ paths:
                 $ref: "#/components/schemas/MeetResponse"
         "404":
           $ref: "#/components/responses/NotFound"
+
+  # --- Registration-Service Endpunkte ---
   /users:
     post:
       tags: [Users]
@@ -226,6 +243,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
   /users/{userId}:
     get:
       tags: [Users]
@@ -289,7 +307,7 @@ paths:
   /vehicles:
     get:
       tags: [Vehicles]
-      summary: List vehicles (optional userId filter)
+      summary: List vehicles (optional filter by userId)
       parameters:
         - name: userId
           in: query
@@ -308,8 +326,7 @@ paths:
                   $ref: "#/components/schemas/Vehicle"
     post:
       tags: [Vehicles]
-      summary: Create vehicle (userId required in body)
-      description: Create a vehicle record bound to a user. GET /vehicles is also supported.
+      summary: Create vehicle
       requestBody:
         required: true
         content:
@@ -327,6 +344,7 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
+
   /vehicles/{vehicleId}:
     get:
       tags: [Vehicles]
@@ -380,6 +398,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
   /registrations:
     get:
       tags: [Registrations]
@@ -442,6 +461,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
   /registrations/{registrationId}:
     get:
       tags: [Registrations]
@@ -493,6 +513,7 @@ paths:
                 $ref: "#/components/schemas/Registration"
         "404":
           $ref: "#/components/responses/NotFound"
+
   /registrations/meets/{meetId}/count:
     get:
       tags: [Registrations]
@@ -507,7 +528,7 @@ paths:
         - name: role
           in: query
           required: false
-          description: Optional role filter for participant/visitor counts
+          description: Optional role filter (PARTICIPANT or VISITOR)
           schema:
             type: string
             enum: [PARTICIPANT, VISITOR]
@@ -520,6 +541,7 @@ paths:
                 $ref: "#/components/schemas/RegistrationCount"
         "404":
           $ref: "#/components/responses/NotFound"
+
 components:
   parameters:
     MeetId:
@@ -557,6 +579,7 @@ components:
       schema:
         type: string
         format: uuid
+
   responses:
     BadRequest:
       description: Bad Request
@@ -570,6 +593,7 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
+
   schemas:
     Error:
       type: object
@@ -580,6 +604,7 @@ components:
           type: string
         details:
           type: string
+
     Venue:
       type: object
       additionalProperties: false
@@ -610,14 +635,12 @@ components:
         createdAt:
           type: string
           format: date-time
+
     VenueSummary:
       type: object
       additionalProperties: false
       required: [venueId, name, city, country]
       properties:
-        venueId:
-          type: string
-          format: uuid
         name:
           type: string
           minLength: 1
@@ -627,6 +650,7 @@ components:
         country:
           type: string
           minLength: 1
+
     VenueCreate:
       type: object
       additionalProperties: false
@@ -651,6 +675,7 @@ components:
           type: number
         notes:
           type: string
+
     VenueUpdate:
       type: object
       additionalProperties: false
@@ -674,6 +699,7 @@ components:
           type: number
         notes:
           type: string
+
     Meet:
       type: object
       additionalProperties: false
@@ -719,6 +745,7 @@ components:
         createdAt:
           type: string
           format: date-time
+
     MeetResponse:
       allOf:
         - $ref: "#/components/schemas/Meet"
@@ -728,6 +755,7 @@ components:
           properties:
             venue:
               $ref: "#/components/schemas/VenueSummary"
+
     MeetCreate:
       type: object
       additionalProperties: false
@@ -756,6 +784,7 @@ components:
         maxVisitors:
           type: integer
           minimum: 0
+
     MeetUpdate:
       type: object
       additionalProperties: false
@@ -783,6 +812,7 @@ components:
         maxVisitors:
           type: integer
           minimum: 0
+
     User:
       type: object
       additionalProperties: false
@@ -800,6 +830,7 @@ components:
         createdAt:
           type: string
           format: date-time
+
     UserCreate:
       type: object
       additionalProperties: false
@@ -811,6 +842,7 @@ components:
         email:
           type: string
           format: email
+
     UserUpdate:
       type: object
       additionalProperties: false
@@ -821,6 +853,7 @@ components:
         email:
           type: string
           format: email
+
     Vehicle:
       type: object
       additionalProperties: false
@@ -850,6 +883,7 @@ components:
           type: string
         notes:
           type: string
+
     VehicleCreate:
       type: object
       additionalProperties: false
@@ -873,6 +907,7 @@ components:
           type: string
         notes:
           type: string
+
     VehicleUpdate:
       type: object
       additionalProperties: false
@@ -895,32 +930,17 @@ components:
           type: string
         notes:
           type: string
+
     VehicleCreateWithUser:
-      type: object
-      additionalProperties: false
-      required: [userId, make, model]
-      properties:
-        userId:
-          type: string
-          format: uuid
-        make:
-          type: string
-          minLength: 1
-        model:
-          type: string
-          minLength: 1
-        year:
-          type: integer
-          minimum: 1900
-        color:
-          type: string
-        powerHp:
-          type: integer
-          minimum: 0
-        plateOptional:
-          type: string
-        notes:
-          type: string
+      allOf:
+        - $ref: "#/components/schemas/VehicleCreate"
+        - type: object
+          required: [userId]
+          properties:
+            userId:
+              type: string
+              format: uuid
+
     Registration:
       type: object
       additionalProperties: false
@@ -932,7 +952,7 @@ components:
         meetId:
           type: string
           format: uuid
-          description: MeetId from Meet-Service (no DB FK here)
+          description: MeetId from Meet-Service (no DB FK hier)
         userId:
           type: string
           format: uuid
@@ -952,6 +972,7 @@ components:
         checkInAt:
           type: [string, "null"]
           format: date-time
+
     RegistrationCreate:
       type: object
       additionalProperties: false
@@ -970,6 +991,7 @@ components:
           type: [string, "null"]
           format: uuid
           description: Required if role=PARTICIPANT, must be null if VISITOR
+
     RegistrationUpdate:
       type: object
       additionalProperties: false
