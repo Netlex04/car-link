@@ -1,7 +1,7 @@
 
-  # RevMeet Frontend Design
+  # CarLink Frontend Design
 
-  This is a code bundle for RevMeet Frontend Design. The original project is available at https://www.figma.com/design/ls0SHjHgyy8mgoN15E9OEC/RevMeet-Frontend-Design.
+  This is a code bundle for CarLink Frontend Design. The original project is available at https://www.figma.com/design/ls0SHjHgyy8mgoN15E9OEC/CarLink-Frontend-Design.
 
   ## Running the code
 

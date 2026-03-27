@@ -1,5 +1,5 @@
-import { useParams, Link, useNavigate } from 'react-router';
-import { useState } from 'react';
+import { useParams, Link, useNavigate } from "react-router";
+import { useState } from "react";
 import {
   Calendar,
   MapPin,
@@ -9,26 +9,26 @@ import {
   User,
   ArrowLeft,
   AlertCircle,
-} from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Card } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
+} from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '../components/ui/dialog';
-import { Label } from '../components/ui/label';
-import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
+} from "../components/ui/dialog";
+import { Label } from "../components/ui/label";
+import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../components/ui/select';
+} from "../components/ui/select";
 import {
   mockMeets,
   mockRegistrations,
@@ -37,28 +37,33 @@ import {
   getRegistrationCount,
   CURRENT_USER_ID,
   getUserVehicles,
-} from '../lib/mock-data';
-import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
-import { toast } from 'sonner';
+} from "../lib/mock-data";
+import { format } from "date-fns";
+import { de } from "date-fns/locale";
+import { toast } from "sonner";
 
 export function MeetDetailPage() {
   const { meetId } = useParams();
   const navigate = useNavigate();
   const [registrationDialogOpen, setRegistrationDialogOpen] = useState(false);
-  const [registrationRole, setRegistrationRole] = useState<'PARTICIPANT' | 'VISITOR'>('VISITOR');
-  const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
+  const [registrationRole, setRegistrationRole] = useState<
+    "PARTICIPANT" | "VISITOR"
+  >("VISITOR");
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string>("");
 
   const meet = mockMeets.find((m) => m.meetId === meetId);
   const counts = meet ? getRegistrationCount(meet.meetId) : null;
   const userVehicles = getUserVehicles(CURRENT_USER_ID);
 
   const userRegistration = mockRegistrations.find(
-    (r) => r.meetId === meetId && r.userId === CURRENT_USER_ID && r.status === 'CONFIRMED'
+    (r) =>
+      r.meetId === meetId &&
+      r.userId === CURRENT_USER_ID &&
+      r.status === "CONFIRMED",
   );
 
   const meetRegistrations = mockRegistrations.filter(
-    (r) => r.meetId === meetId && r.status === 'CONFIRMED'
+    (r) => r.meetId === meetId && r.status === "CONFIRMED",
   );
 
   if (!meet) {
@@ -81,24 +86,24 @@ export function MeetDetailPage() {
   }
 
   const handleRegister = () => {
-    if (registrationRole === 'PARTICIPANT' && !selectedVehicleId) {
-      toast.error('Bitte wähle ein Fahrzeug aus');
+    if (registrationRole === "PARTICIPANT" && !selectedVehicleId) {
+      toast.error("Bitte wähle ein Fahrzeug aus");
       return;
     }
 
     // Mock registration
     toast.success(
-      registrationRole === 'PARTICIPANT'
-        ? 'Du bist jetzt als Teilnehmer angemeldet!'
-        : 'Du bist jetzt als Besucher angemeldet!'
+      registrationRole === "PARTICIPANT"
+        ? "Du bist jetzt als Teilnehmer angemeldet!"
+        : "Du bist jetzt als Besucher angemeldet!",
     );
     setRegistrationDialogOpen(false);
-    
+
     // In a real app, refresh data here
   };
 
   const handleCancelRegistration = () => {
-    toast.success('Anmeldung erfolgreich storniert');
+    toast.success("Anmeldung erfolgreich storniert");
     // In a real app, refresh data here
   };
 
@@ -110,7 +115,7 @@ export function MeetDetailPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <Link to="/meets">
-          <Button variant="ghost" className="mb-6">
+          <Button variant="ghost" className="mb-6 text-white">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Zurück zur Übersicht
           </Button>
@@ -120,11 +125,11 @@ export function MeetDetailPage() {
         <Card className="overflow-hidden bg-card border-border mb-6">
           <div
             className={`h-2 ${
-              meet.status === 'PLANNED'
-                ? 'bg-gradient-to-r from-primary to-primary/60'
-                : meet.status === 'CANCELLED'
-                ? 'bg-destructive'
-                : 'bg-muted'
+              meet.status === "PLANNED"
+                ? "bg-gradient-to-r from-primary to-primary/60"
+                : meet.status === "CANCELLED"
+                  ? "bg-destructive"
+                  : "bg-muted"
             }`}
           />
 
@@ -133,18 +138,18 @@ export function MeetDetailPage() {
             <div className="flex flex-wrap items-center gap-3 mb-6">
               <Badge
                 className={
-                  meet.status === 'PLANNED'
-                    ? 'bg-primary/10 text-primary border-primary/20'
-                    : meet.status === 'CANCELLED'
-                    ? 'bg-destructive/10 text-destructive border-destructive/20'
-                    : 'bg-muted/50 text-muted-foreground border-border'
+                  meet.status === "PLANNED"
+                    ? "bg-primary/10 text-primary border-primary/20"
+                    : meet.status === "CANCELLED"
+                      ? "bg-destructive/10 text-destructive border-destructive/20"
+                      : "bg-muted/50 text-muted-foreground border-border"
                 }
               >
-                {meet.status === 'PLANNED'
-                  ? 'Geplant'
-                  : meet.status === 'CANCELLED'
-                  ? 'Abgesagt'
-                  : 'Beendet'}
+                {meet.status === "PLANNED"
+                  ? "Geplant"
+                  : meet.status === "CANCELLED"
+                    ? "Abgesagt"
+                    : "Beendet"}
               </Badge>
               {isOrganizer && (
                 <Badge variant="outline" className="bg-primary/5 text-primary">
@@ -155,11 +160,15 @@ export function MeetDetailPage() {
             </div>
 
             {/* Title */}
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">{meet.title}</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              {meet.title}
+            </h1>
 
             {/* Description */}
             {meet.description && (
-              <p className="text-lg text-muted-foreground mb-6">{meet.description}</p>
+              <p className="text-lg text-muted-foreground mb-6">
+                {meet.description}
+              </p>
             )}
 
             {/* Meta Info Grid */}
@@ -170,7 +179,7 @@ export function MeetDetailPage() {
                   <div>
                     <div className="font-medium">Datum</div>
                     <div className="text-sm text-muted-foreground">
-                      {format(new Date(meet.startAt), 'EEEE, dd. MMMM yyyy', {
+                      {format(new Date(meet.startAt), "EEEE, dd. MMMM yyyy", {
                         locale: de,
                       })}
                     </div>
@@ -182,9 +191,10 @@ export function MeetDetailPage() {
                   <div>
                     <div className="font-medium">Uhrzeit</div>
                     <div className="text-sm text-muted-foreground">
-                      {format(new Date(meet.startAt), 'HH:mm', { locale: de })} Uhr
+                      {format(new Date(meet.startAt), "HH:mm", { locale: de })}{" "}
+                      Uhr
                       {meet.endAt &&
-                        ` - ${format(new Date(meet.endAt), 'HH:mm', { locale: de })} Uhr`}
+                        ` - ${format(new Date(meet.endAt), "HH:mm", { locale: de })} Uhr`}
                     </div>
                   </div>
                 </div>
@@ -222,7 +232,8 @@ export function MeetDetailPage() {
                   {counts?.participants || 0}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  Teilnehmer{meet.maxParticipants && ` / ${meet.maxParticipants}`}
+                  Teilnehmer
+                  {meet.maxParticipants && ` / ${meet.maxParticipants}`}
                 </div>
               </div>
               <div className="text-center">
@@ -234,7 +245,9 @@ export function MeetDetailPage() {
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{counts?.total || 0}</div>
+                <div className="text-2xl font-bold text-primary">
+                  {counts?.total || 0}
+                </div>
                 <div className="text-sm text-muted-foreground">Gesamt</div>
               </div>
               <div className="text-center">
@@ -248,7 +261,7 @@ export function MeetDetailPage() {
         </Card>
 
         {/* Registration Actions */}
-        {meet.status === 'PLANNED' && (
+        {meet.status === "PLANNED" && (
           <Card className="p-6 bg-card border-border mb-6">
             <h2 className="text-xl font-semibold mb-4">Anmeldung</h2>
 
@@ -256,7 +269,7 @@ export function MeetDetailPage() {
               <div className="space-y-4">
                 <div className="flex items-center gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
                   <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                    {userRegistration.role === 'PARTICIPANT' ? (
+                    {userRegistration.role === "PARTICIPANT" ? (
                       <Car className="w-5 h-5 text-primary" />
                     ) : (
                       <Users className="w-5 h-5 text-primary" />
@@ -264,8 +277,10 @@ export function MeetDetailPage() {
                   </div>
                   <div className="flex-1">
                     <div className="font-medium">
-                      Du bist als{' '}
-                      {userRegistration.role === 'PARTICIPANT' ? 'Teilnehmer' : 'Besucher'}{' '}
+                      Du bist als{" "}
+                      {userRegistration.role === "PARTICIPANT"
+                        ? "Teilnehmer"
+                        : "Besucher"}{" "}
                       angemeldet
                     </div>
                     {userRegistration.vehicleId && (
@@ -293,7 +308,7 @@ export function MeetDetailPage() {
                   <Button
                     className="bg-primary text-primary-foreground hover:bg-primary/90"
                     onClick={() => {
-                      setRegistrationRole('PARTICIPANT');
+                      setRegistrationRole("PARTICIPANT");
                       setRegistrationDialogOpen(true);
                     }}
                   >
@@ -303,7 +318,7 @@ export function MeetDetailPage() {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setRegistrationRole('VISITOR');
+                      setRegistrationRole("VISITOR");
                       setRegistrationDialogOpen(true);
                     }}
                   >
@@ -319,7 +334,9 @@ export function MeetDetailPage() {
         {/* Registered Participants Preview */}
         {meetRegistrations.length > 0 && (
           <Card className="p-6 bg-card border-border">
-            <h2 className="text-xl font-semibold mb-4">Angemeldete Teilnehmer</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              Angemeldete Teilnehmer
+            </h2>
             <div className="space-y-3">
               {meetRegistrations.slice(0, 5).map((reg) => {
                 const user = mockUsers.find((u) => u.userId === reg.userId);
@@ -333,26 +350,30 @@ export function MeetDetailPage() {
                     className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg"
                   >
                     <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      {reg.role === 'PARTICIPANT' ? (
+                      {reg.role === "PARTICIPANT" ? (
                         <Car className="w-5 h-5 text-primary" />
                       ) : (
                         <User className="w-5 h-5 text-primary" />
                       )}
                     </div>
                     <div className="flex-1">
-                      <div className="font-medium">{user?.displayName || 'Unbekannt'}</div>
+                      <div className="font-medium">
+                        {user?.displayName || "Unbekannt"}
+                      </div>
                       {vehicle && (
                         <div className="text-sm text-muted-foreground">
                           {vehicle.make} {vehicle.model}
                           {vehicle.year && ` (${vehicle.year})`}
                         </div>
                       )}
-                      {!vehicle && reg.role === 'VISITOR' && (
-                        <div className="text-sm text-muted-foreground">Besucher</div>
+                      {!vehicle && reg.role === "VISITOR" && (
+                        <div className="text-sm text-muted-foreground">
+                          Besucher
+                        </div>
                       )}
                     </div>
                     <Badge variant="outline" className="text-xs">
-                      {reg.role === 'PARTICIPANT' ? 'Teilnehmer' : 'Besucher'}
+                      {reg.role === "PARTICIPANT" ? "Teilnehmer" : "Besucher"}
                     </Badge>
                   </div>
                 );
@@ -368,55 +389,75 @@ export function MeetDetailPage() {
       </div>
 
       {/* Registration Dialog */}
-      <Dialog open={registrationDialogOpen} onOpenChange={setRegistrationDialogOpen}>
+      <Dialog
+        open={registrationDialogOpen}
+        onOpenChange={setRegistrationDialogOpen}
+      >
         <DialogContent className="bg-card">
           <DialogHeader>
             <DialogTitle>
-              Anmeldung als {registrationRole === 'PARTICIPANT' ? 'Teilnehmer' : 'Besucher'}
+              Anmeldung als{" "}
+              {registrationRole === "PARTICIPANT" ? "Teilnehmer" : "Besucher"}
             </DialogTitle>
             <DialogDescription>
-              {registrationRole === 'PARTICIPANT'
-                ? 'Wähle ein Fahrzeug aus, mit dem du teilnehmen möchtest.'
-                : 'Du meldest dich als Besucher ohne Fahrzeug an.'}
+              {registrationRole === "PARTICIPANT"
+                ? "Wähle ein Fahrzeug aus, mit dem du teilnehmen möchtest."
+                : "Du meldest dich als Besucher ohne Fahrzeug an."}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <RadioGroup value={registrationRole} onValueChange={(v) => setRegistrationRole(v as any)}>
+            <RadioGroup
+              value={registrationRole}
+              onValueChange={(v) => setRegistrationRole(v as any)}
+            >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="VISITOR" id="visitor" />
                 <Label htmlFor="visitor" className="flex-1 cursor-pointer">
                   <div className="font-medium">Besucher</div>
-                  <div className="text-sm text-muted-foreground">Ohne Fahrzeug</div>
+                  <div className="text-sm text-muted-foreground">
+                    Ohne Fahrzeug
+                  </div>
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="PARTICIPANT" id="participant" />
                 <Label htmlFor="participant" className="flex-1 cursor-pointer">
                   <div className="font-medium">Teilnehmer</div>
-                  <div className="text-sm text-muted-foreground">Mit Fahrzeug</div>
+                  <div className="text-sm text-muted-foreground">
+                    Mit Fahrzeug
+                  </div>
                 </Label>
               </div>
             </RadioGroup>
 
-            {registrationRole === 'PARTICIPANT' && (
+            {registrationRole === "PARTICIPANT" && (
               <div className="space-y-2">
                 <Label>Fahrzeug auswählen</Label>
                 {userVehicles.length === 0 ? (
                   <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg">
-                    Du hast noch keine Fahrzeuge.{' '}
-                    <Link to="/vehicles" className="text-primary hover:underline">
+                    Du hast noch keine Fahrzeuge.{" "}
+                    <Link
+                      to="/vehicles"
+                      className="text-primary hover:underline"
+                    >
                       Jetzt hinzufügen
                     </Link>
                   </div>
                 ) : (
-                  <Select value={selectedVehicleId} onValueChange={setSelectedVehicleId}>
+                  <Select
+                    value={selectedVehicleId}
+                    onValueChange={setSelectedVehicleId}
+                  >
                     <SelectTrigger className="bg-input">
                       <SelectValue placeholder="Fahrzeug wählen..." />
                     </SelectTrigger>
                     <SelectContent>
                       {userVehicles.map((vehicle) => (
-                        <SelectItem key={vehicle.vehicleId} value={vehicle.vehicleId}>
+                        <SelectItem
+                          key={vehicle.vehicleId}
+                          value={vehicle.vehicleId}
+                        >
                           {vehicle.make} {vehicle.model}
                           {vehicle.year && ` (${vehicle.year})`}
                         </SelectItem>
@@ -439,7 +480,9 @@ export function MeetDetailPage() {
             <Button
               className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
               onClick={handleRegister}
-              disabled={registrationRole === 'PARTICIPANT' && userVehicles.length === 0}
+              disabled={
+                registrationRole === "PARTICIPANT" && userVehicles.length === 0
+              }
             >
               Anmelden
             </Button>

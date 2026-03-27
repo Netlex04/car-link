@@ -1,4 +1,4 @@
-// Mock data for RevMeet application
+// Mock data for CarLink application
 
 export interface Venue {
   venueId: string;
@@ -118,19 +118,19 @@ export const mockUsers: User[] = [
   {
     userId: CURRENT_USER_ID,
     displayName: 'Max Power',
-    email: 'max@revmeet.de',
+    email: 'max@carlink.de',
     createdAt: '2026-01-15T10:00:00Z',
   },
   {
     userId: 'user-456',
     displayName: 'Julia Speed',
-    email: 'julia@revmeet.de',
+    email: 'julia@carlink.de',
     createdAt: '2026-02-01T10:00:00Z',
   },
   {
     userId: 'user-789',
     displayName: 'Tom Racer',
-    email: 'tom@revmeet.de',
+    email: 'tom@carlink.de',
     createdAt: '2026-02-10T10:00:00Z',
   },
 ];

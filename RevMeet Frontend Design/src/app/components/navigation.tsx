@@ -28,7 +28,7 @@ export function Navigation() {
                 <Car className="w-6 h-6 text-primary-foreground" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                RevMeet
+                CarLink
               </span>
             </Link>
 
@@ -71,7 +71,7 @@ export function Navigation() {
               <Car className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-lg font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              RevMeet
+              CarLink
             </span>
           </Link>
 

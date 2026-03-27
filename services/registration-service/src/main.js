@@ -22,7 +22,7 @@ const config = {
   },
 };
 
-const logger = logging.default("main");
+const logger = logging("main");
 
 await db.init();
 
