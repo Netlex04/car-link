@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar, Users, Car, Filter, Search, MapPin } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
@@ -12,15 +12,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import { mockMeets, getRegistrationCount } from "../lib/mock-data";
+import { getRegistrationCount } from "../lib/mock-data";
+import { fetchMeets } from "../lib/api";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 
 export function MeetsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [meets, setMeets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredMeets = mockMeets.filter((meet) => {
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const data = await fetchMeets();
+        setMeets(data);
+        setError(null);
+      } catch (err: any) {
+        setError(err?.message || "Fehler beim Laden der Meets");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const filteredMeets = meets.filter((meet) => {
     const matchesStatus =
       statusFilter === "all" || meet.status === statusFilter;
     const matchesSearch =
@@ -46,6 +65,18 @@ export function MeetsPage() {
             Entdecke spontane Events in deiner Nähe
           </p>
         </div>
+
+        {loading && (
+          <Card className="p-4 mb-8 bg-card border-border">
+            <p>Lade Meets…</p>
+          </Card>
+        )}
+
+        {error && (
+          <Card className="p-4 mb-8 bg-card border-border">
+            <p className="text-destructive">{error}</p>
+          </Card>
+        )}
 
         {/* Filters */}
         <Card className="p-4 mb-8 bg-card border-border">

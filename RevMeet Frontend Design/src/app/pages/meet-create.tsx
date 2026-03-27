@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { ArrowLeft, Calendar, MapPin, Plus } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -6,6 +6,8 @@ import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
+import { fetchVenues, createVenue, createMeet } from "../lib/api";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -21,7 +23,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../components/ui/dialog";
-import { mockVenues } from "../lib/mock-data";
 import { toast } from "sonner";
 
 export function MeetCreatePage() {
@@ -39,6 +40,10 @@ export function MeetCreatePage() {
   const [maxParticipants, setMaxParticipants] = useState("");
   const [maxVisitors, setMaxVisitors] = useState("");
 
+  // Venues aus Backend
+  const [venues, setVenues] = useState<any[]>([]);
+  const [loadingVenues, setLoadingVenues] = useState(false);
+
   // New venue form state
   const [newVenueName, setNewVenueName] = useState("");
   const [newVenueStreet, setNewVenueStreet] = useState("");
@@ -46,25 +51,53 @@ export function MeetCreatePage() {
   const [newVenueCity, setNewVenueCity] = useState("");
   const [newVenueCountry, setNewVenueCountry] = useState("Deutschland");
 
-  const handleCreateVenue = () => {
+  useEffect(() => {
+    (async () => {
+      setLoadingVenues(true);
+      try {
+        const v = await fetchVenues();
+        setVenues(v);
+      } catch (err: any) {
+        toast.error(
+          `Fehler beim Laden der Veranstaltungsorte: ${err?.message || err}`,
+        );
+      } finally {
+        setLoadingVenues(false);
+      }
+    })();
+  }, []);
+
+  const handleCreateVenue = async () => {
     if (!newVenueName || !newVenueCity) {
       toast.error("Name und Stadt sind Pflichtfelder");
       return;
     }
 
-    // Mock venue creation
-    toast.success("Venue erfolgreich erstellt!");
-    setVenueDialogOpen(false);
+    try {
+      const newVenue = await createVenue({
+        name: newVenueName,
+        street: newVenueStreet,
+        zip: newVenueZip,
+        city: newVenueCity,
+        country: newVenueCountry,
+      });
 
-    // Reset form
-    setNewVenueName("");
-    setNewVenueStreet("");
-    setNewVenueZip("");
-    setNewVenueCity("");
-    setNewVenueCountry("Deutschland");
+      setVenues((prev) => [...prev, newVenue]);
+      setVenueId(newVenue.venueId);
+      toast.success("Venue erfolgreich erstellt!");
+      setVenueDialogOpen(false);
+    } catch (err: any) {
+      toast.error(`Fehler beim Erstellen des Ortes: ${err?.message || err}`);
+    } finally {
+      setNewVenueName("");
+      setNewVenueStreet("");
+      setNewVenueZip("");
+      setNewVenueCity("");
+      setNewVenueCountry("Deutschland");
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title || !startDate || !startTime || !venueId) {
@@ -72,13 +105,27 @@ export function MeetCreatePage() {
       return;
     }
 
-    // Mock meet creation
-    toast.success("Meet erfolgreich erstellt!");
+    try {
+      const startAt = `${startDate}T${startTime}:00Z`;
+      const endAt =
+        endDate && endTime ? `${endDate}T${endTime}:00Z` : undefined;
 
-    // Navigate to meets overview
-    setTimeout(() => {
-      navigate("/meets");
-    }, 1000);
+      await createMeet({
+        title,
+        description,
+        startAt,
+        endAt,
+        venueId,
+        organizerUserId: "user-123",
+        maxParticipants: maxParticipants ? Number(maxParticipants) : undefined,
+        maxVisitors: maxVisitors ? Number(maxVisitors) : undefined,
+      });
+
+      toast.success("Meet erfolgreich erstellt!");
+      setTimeout(() => navigate("/meets"), 200);
+    } catch (err: any) {
+      toast.error(`Fehler beim Erstellen des Meet: ${err?.message || err}`);
+    }
   };
 
   return (
@@ -200,11 +247,17 @@ export function MeetCreatePage() {
                     <SelectValue placeholder="Ort auswählen..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockVenues.map((venue) => (
-                      <SelectItem key={venue.venueId} value={venue.venueId}>
-                        {venue.name} - {venue.city}
-                      </SelectItem>
-                    ))}
+                    {loadingVenues ? (
+                      <SelectItem value="">Lade Orte...</SelectItem>
+                    ) : venues.length > 0 ? (
+                      venues.map((venue) => (
+                        <SelectItem key={venue.venueId} value={venue.venueId}>
+                          {venue.name} - {venue.city}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="">Keine Orte gefunden</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
 
