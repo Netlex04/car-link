@@ -1,17 +1,17 @@
-import { useState } from 'react';
-import { Plus, Car, Edit, Trash2 } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Card } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
+import { useState } from "react";
+import { Plus, Car, Edit, Trash2 } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '../components/ui/dialog';
+} from "../components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,25 +21,43 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../components/ui/alert-dialog';
-import { getUserVehicles, CURRENT_USER_ID } from '../lib/mock-data';
-import { toast } from 'sonner';
+} from "../components/ui/alert-dialog";
+import { CURRENT_USER_ID } from "../lib/mock-data";
+import { fetchVehicles, createVehicle } from "../lib/api";
+import { toast } from "sonner";
 
 export function VehiclesPage() {
-  const [vehicles] = useState(getUserVehicles(CURRENT_USER_ID));
+  const [vehicles, setVehicles] = useState<any[]>([]);
   const [vehicleDialogOpen, setVehicleDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<any>(null);
   const [vehicleToDelete, setVehicleToDelete] = useState<string | null>(null);
 
   // Form state
-  const [make, setMake] = useState('');
-  const [model, setModel] = useState('');
-  const [year, setYear] = useState('');
-  const [color, setColor] = useState('');
-  const [powerHp, setPowerHp] = useState('');
-  const [plateOptional, setPlateOptional] = useState('');
-  const [notes, setNotes] = useState('');
+  const [make, setMake] = useState("");
+  const [model, setModel] = useState("");
+  const [year, setYear] = useState("");
+  const [color, setColor] = useState("");
+  const [powerHp, setPowerHp] = useState("");
+  const [plateOptional, setPlateOptional] = useState("");
+  const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const data = await fetchVehicles(CURRENT_USER_ID);
+        setVehicles(data);
+        setError(null);
+      } catch (err: any) {
+        setError(err?.message || "Fehler beim Laden der Fahrzeuge");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   const openCreateDialog = () => {
     setEditingVehicle(null);
@@ -51,42 +69,58 @@ export function VehiclesPage() {
     setEditingVehicle(vehicle);
     setMake(vehicle.make);
     setModel(vehicle.model);
-    setYear(vehicle.year?.toString() || '');
-    setColor(vehicle.color || '');
-    setPowerHp(vehicle.powerHp?.toString() || '');
-    setPlateOptional(vehicle.plateOptional || '');
-    setNotes(vehicle.notes || '');
+    setYear(vehicle.year?.toString() || "");
+    setColor(vehicle.color || "");
+    setPowerHp(vehicle.powerHp?.toString() || "");
+    setPlateOptional(vehicle.plateOptional || "");
+    setNotes(vehicle.notes || "");
     setVehicleDialogOpen(true);
   };
 
   const resetForm = () => {
-    setMake('');
-    setModel('');
-    setYear('');
-    setColor('');
-    setPowerHp('');
-    setPlateOptional('');
-    setNotes('');
+    setMake("");
+    setModel("");
+    setYear("");
+    setColor("");
+    setPowerHp("");
+    setPlateOptional("");
+    setNotes("");
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!make || !model) {
-      toast.error('Marke und Modell sind Pflichtfelder');
+      toast.error("Marke und Modell sind Pflichtfelder");
       return;
     }
 
-    if (editingVehicle) {
-      toast.success('Fahrzeug erfolgreich aktualisiert!');
-    } else {
-      toast.success('Fahrzeug erfolgreich hinzugefügt!');
-    }
+    try {
+      if (editingVehicle) {
+        // Not implemented: update vehicle endpoint
+        toast.success("Fahrzeug erfolgreich aktualisiert!");
+      } else {
+        const newVehicle = await createVehicle({
+          userId: CURRENT_USER_ID,
+          make,
+          model,
+          year: year ? Number(year) : undefined,
+          color,
+          powerHp: powerHp ? Number(powerHp) : undefined,
+          plateOptional,
+          notes,
+        });
+        setVehicles((prev) => [...prev, newVehicle]);
+        toast.success("Fahrzeug erfolgreich hinzugefügt!");
+      }
 
-    setVehicleDialogOpen(false);
-    resetForm();
+      setVehicleDialogOpen(false);
+      resetForm();
+    } catch (err: any) {
+      toast.error(`Fehler beim Speichern: ${err?.message || err}`);
+    }
   };
 
   const handleDelete = () => {
-    toast.success('Fahrzeug erfolgreich gelöscht');
+    toast.success("Fahrzeug erfolgreich gelöscht");
     setDeleteDialogOpen(false);
     setVehicleToDelete(null);
   };
@@ -97,8 +131,12 @@ export function VehiclesPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Meine Fahrzeuge</h1>
-            <p className="text-muted-foreground">Verwalte deine Fahrzeugsammlung</p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">
+              Meine Fahrzeuge
+            </h1>
+            <p className="text-muted-foreground">
+              Verwalte deine Fahrzeugsammlung
+            </p>
           </div>
           <Button
             className="bg-primary text-primary-foreground hover:bg-primary/90"
@@ -109,8 +147,20 @@ export function VehiclesPage() {
           </Button>
         </div>
 
+        {loading && (
+          <Card className="p-12 text-center bg-card border-border">
+            <p>Lade Fahrzeuge...</p>
+          </Card>
+        )}
+
+        {error && (
+          <Card className="p-12 text-center bg-card border-border">
+            <p className="text-destructive">{error}</p>
+          </Card>
+        )}
+
         {/* Empty State */}
-        {vehicles.length === 0 ? (
+        {!loading && !error && vehicles.length === 0 ? (
           <Card className="p-12 text-center bg-card border-border">
             <Car className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Noch keine Fahrzeuge</h3>
@@ -163,12 +213,16 @@ export function VehiclesPage() {
                     {vehicle.powerHp && (
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Leistung</span>
-                        <span className="font-medium">{vehicle.powerHp} PS</span>
+                        <span className="font-medium">
+                          {vehicle.powerHp} PS
+                        </span>
                       </div>
                     )}
                     {vehicle.plateOptional && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Kennzeichen</span>
+                        <span className="text-muted-foreground">
+                          Kennzeichen
+                        </span>
                         <span className="font-medium font-mono">
                           {vehicle.plateOptional}
                         </span>
@@ -176,7 +230,9 @@ export function VehiclesPage() {
                     )}
                     {vehicle.notes && (
                       <div className="pt-2 border-t border-border">
-                        <p className="text-sm text-muted-foreground">{vehicle.notes}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {vehicle.notes}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -214,12 +270,14 @@ export function VehiclesPage() {
         <DialogContent className="bg-card max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingVehicle ? 'Fahrzeug bearbeiten' : 'Neues Fahrzeug hinzufügen'}
+              {editingVehicle
+                ? "Fahrzeug bearbeiten"
+                : "Neues Fahrzeug hinzufügen"}
             </DialogTitle>
             <DialogDescription>
               {editingVehicle
-                ? 'Aktualisiere die Details deines Fahrzeugs'
-                : 'Füge ein neues Fahrzeug zu deiner Sammlung hinzu'}
+                ? "Aktualisiere die Details deines Fahrzeugs"
+                : "Füge ein neues Fahrzeug zu deiner Sammlung hinzu"}
             </DialogDescription>
           </DialogHeader>
 
@@ -328,7 +386,7 @@ export function VehiclesPage() {
               className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
               onClick={handleSubmit}
             >
-              {editingVehicle ? 'Speichern' : 'Hinzufügen'}
+              {editingVehicle ? "Speichern" : "Hinzufügen"}
             </Button>
           </div>
         </DialogContent>
@@ -340,8 +398,8 @@ export function VehiclesPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Fahrzeug löschen?</AlertDialogTitle>
             <AlertDialogDescription>
-              Diese Aktion kann nicht rückgängig gemacht werden. Das Fahrzeug wird
-              dauerhaft aus deiner Sammlung entfernt.
+              Diese Aktion kann nicht rückgängig gemacht werden. Das Fahrzeug
+              wird dauerhaft aus deiner Sammlung entfernt.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

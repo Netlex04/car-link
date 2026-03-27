@@ -1,64 +1,133 @@
-import { Link } from 'react-router';
-import { useState } from 'react';
-import { User, Mail, Calendar, Car, Users, Edit, CheckCircle2 } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Card } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
+import { Link } from "react-router";
+import { useState } from "react";
+import {
+  User,
+  Mail,
+  Calendar,
+  Car,
+  Users,
+  Edit,
+  CheckCircle2,
+} from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '../components/ui/dialog';
+} from "../components/ui/dialog";
+import { CURRENT_USER_ID } from "../lib/mock-data";
 import {
-  getCurrentUser,
-  getUserVehicles,
-  getUserRegistrations,
-  mockMeets,
-  mockVehicles,
-  CURRENT_USER_ID,
-} from '../lib/mock-data';
-import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
-import { toast } from 'sonner';
+  fetchUser,
+  updateUser,
+  fetchVehicles,
+  fetchRegistrations,
+  fetchMeets,
+} from "../lib/api";
+import { format } from "date-fns";
+import { de } from "date-fns/locale";
+import { toast } from "sonner";
 
 export function ProfilePage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const currentUser = getCurrentUser();
-  const userVehicles = getUserVehicles(CURRENT_USER_ID);
-  const userRegistrations = getUserRegistrations(CURRENT_USER_ID).filter(
-    (r) => r.status === 'CONFIRMED'
-  );
-
-  const [displayName, setDisplayName] = useState(currentUser.displayName);
-  const [email, setEmail] = useState(currentUser.email);
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [userVehicles, setUserVehicles] = useState<any[]>([]);
+  const [userRegistrations, setUserRegistrations] = useState<any[]>([]);
+  const [meets, setMeets] = useState<any[]>([]);
+  const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const upcomingRegistrations = userRegistrations.filter((reg) => {
-    const meet = mockMeets.find((m) => m.meetId === reg.meetId);
+    const meet = meets.find((m) => m.meetId === reg.meetId);
     return meet && new Date(meet.startAt) > new Date();
   });
 
   const pastRegistrations = userRegistrations.filter((reg) => {
-    const meet = mockMeets.find((m) => m.meetId === reg.meetId);
+    const meet = meets.find((m) => m.meetId === reg.meetId);
     return meet && new Date(meet.startAt) <= new Date();
   });
 
-  const organizedMeets = mockMeets.filter(
-    (m) => m.organizerUserId === CURRENT_USER_ID
+  const organizedMeets = meets.filter(
+    (m) => m.organizerUserId === CURRENT_USER_ID,
   );
 
-  const handleUpdateProfile = () => {
+  const handleUpdateProfile = async () => {
     if (!displayName || !email) {
-      toast.error('Name und E-Mail sind Pflichtfelder');
+      toast.error("Name und E-Mail sind Pflichtfelder");
       return;
     }
 
-    toast.success('Profil erfolgreich aktualisiert!');
-    setEditDialogOpen(false);
+    try {
+      if (!currentUser) throw new Error("User nicht geladen");
+      const updated = await updateUser(currentUser.userId, {
+        displayName,
+        email,
+      });
+      setCurrentUser(updated);
+      toast.success("Profil erfolgreich aktualisiert!");
+      setEditDialogOpen(false);
+    } catch (err: any) {
+      toast.error(`Fehler beim Aktualisieren: ${err?.message || err}`);
+    }
   };
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const [user, bookings, places, events] = await Promise.all([
+          fetchUser(CURRENT_USER_ID),
+          fetchRegistrations({ userId: CURRENT_USER_ID }),
+          fetchVehicles(CURRENT_USER_ID),
+          fetchMeets(),
+        ]);
+        setCurrentUser(user);
+        setUserVehicles(places);
+        setUserRegistrations(
+          bookings.filter((r: any) => r.status === "CONFIRMED"),
+        );
+        setMeets(events);
+        setDisplayName(user.displayName);
+        setEmail(user.email);
+        setError(null);
+      } catch (err: any) {
+        setError(err?.message || "Fehler beim Laden des Profilbereichs");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-8 text-center bg-card border-border">
+          <p>Lade Profil...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-8 text-center bg-card border-border">
+          <p className="text-destructive">{error}</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen">
@@ -84,8 +153,8 @@ export function ProfilePage() {
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
                   <span>
-                    Dabei seit{' '}
-                    {format(new Date(currentUser.createdAt), 'MMMM yyyy', {
+                    Dabei seit{" "}
+                    {format(new Date(currentUser.createdAt), "MMMM yyyy", {
                       locale: de,
                     })}
                   </span>
@@ -94,10 +163,7 @@ export function ProfilePage() {
             </div>
 
             {/* Edit Button */}
-            <Button
-              variant="outline"
-              onClick={() => setEditDialogOpen(true)}
-            >
+            <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
               <Edit className="w-4 h-4 mr-2" />
               Bearbeiten
             </Button>
@@ -197,7 +263,7 @@ export function ProfilePage() {
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                        {reg.role === 'PARTICIPANT' ? (
+                        {reg.role === "PARTICIPANT" ? (
                           <Car className="w-6 h-6 text-primary" />
                         ) : (
                           <Users className="w-6 h-6 text-primary" />
@@ -220,13 +286,15 @@ export function ProfilePage() {
                           <div className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             <span>
-                              {format(new Date(meet.startAt), 'dd. MMM yyyy', {
+                              {format(new Date(meet.startAt), "dd. MMM yyyy", {
                                 locale: de,
                               })}
                             </span>
                           </div>
                           <span>
-                            {reg.role === 'PARTICIPANT' ? 'Teilnehmer' : 'Besucher'}
+                            {reg.role === "PARTICIPANT"
+                              ? "Teilnehmer"
+                              : "Besucher"}
                           </span>
                           {vehicle && (
                             <span>
@@ -254,7 +322,9 @@ export function ProfilePage() {
         {/* Organized Meets */}
         {organizedMeets.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-4">Meine organisierten Meets</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              Meine organisierten Meets
+            </h2>
             <div className="space-y-3">
               {organizedMeets.map((meet) => (
                 <Card
@@ -267,12 +337,12 @@ export function ProfilePage() {
                         <h3 className="font-semibold">{meet.title}</h3>
                         <Badge
                           className={
-                            meet.status === 'PLANNED'
-                              ? 'bg-primary/10 text-primary border-primary/20'
-                              : 'bg-muted/50 text-muted-foreground border-border'
+                            meet.status === "PLANNED"
+                              ? "bg-primary/10 text-primary border-primary/20"
+                              : "bg-muted/50 text-muted-foreground border-border"
                           }
                         >
-                          {meet.status === 'PLANNED' ? 'Geplant' : meet.status}
+                          {meet.status === "PLANNED" ? "Geplant" : meet.status}
                         </Badge>
                       </div>
 
@@ -280,7 +350,7 @@ export function ProfilePage() {
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
                           <span>
-                            {format(new Date(meet.startAt), 'dd. MMM yyyy', {
+                            {format(new Date(meet.startAt), "dd. MMM yyyy", {
                               locale: de,
                             })}
                           </span>
@@ -321,12 +391,15 @@ export function ProfilePage() {
                           {meet.title}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                          {format(new Date(meet.startAt), 'dd. MMMM yyyy', {
+                          {format(new Date(meet.startAt), "dd. MMMM yyyy", {
                             locale: de,
                           })}
                         </p>
                       </div>
-                      <Badge variant="outline" className="text-muted-foreground">
+                      <Badge
+                        variant="outline"
+                        className="text-muted-foreground"
+                      >
                         Beendet
                       </Badge>
                     </div>

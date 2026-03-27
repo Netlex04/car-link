@@ -46,8 +46,50 @@ export async function fetchVenues() {
   return request<any[]>("/venues");
 }
 
-export async function fetchUsers() {
-  return request<any[]>("/users");
+export async function fetchUser(userId: string) {
+  return request<any>(`/users/${userId}`);
+}
+
+export async function updateUser(
+  userId: string,
+  payload: Record<string, unknown>,
+) {
+  return request<any>(`/users/${userId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function fetchVehicles(userId?: string) {
+  return request<any[]>(userId ? `/vehicles?userId=${userId}` : "/vehicles");
+}
+
+export async function createVehicle(vehicle: Record<string, unknown>) {
+  return request<any>("/vehicles", {
+    method: "POST",
+    body: JSON.stringify(vehicle),
+  });
+}
+
+export async function fetchRegistrations(
+  filters: Record<string, string | undefined> = {},
+) {
+  const qs = new URLSearchParams();
+  Object.entries(filters).forEach(([k, v]) => v && qs.append(k, v));
+  return request<any[]>(`/registrations?${qs.toString()}`);
+}
+
+export async function createRegistration(reg: Record<string, unknown>) {
+  return request<any>("/registrations", {
+    method: "POST",
+    body: JSON.stringify(reg),
+  });
+}
+
+export async function cancelRegistration(registrationId: string) {
+  return request<any>(`/registrations/${registrationId}`, {
+    method: "DELETE",
+  });
 }
 
 export async function createVenue(venue: Record<string, unknown>) {

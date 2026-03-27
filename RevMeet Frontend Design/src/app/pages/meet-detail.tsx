@@ -29,15 +29,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
+import { getRegistrationCount, CURRENT_USER_ID } from "../lib/mock-data";
 import {
-  mockMeets,
-  mockRegistrations,
-  mockVehicles,
-  mockUsers,
-  getRegistrationCount,
-  CURRENT_USER_ID,
-  getUserVehicles,
-} from "../lib/mock-data";
+  fetchMeet,
+  fetchRegistrations,
+  createRegistration,
+  cancelRegistration,
+  fetchVehicles,
+  fetchUsers,
+} from "../lib/api";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { toast } from "sonner";
@@ -51,20 +51,70 @@ export function MeetDetailPage() {
   >("VISITOR");
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>("");
 
-  const meet = mockMeets.find((m) => m.meetId === meetId);
+  const [meet, setMeet] = useState<any | null>(null);
+  const [meetRegistrations, setMeetRegistrations] = useState<any[]>([]);
+  const [userVehicles, setUserVehicles] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [userRegistration, setUserRegistration] = useState<any | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const counts = meet ? getRegistrationCount(meet.meetId) : null;
-  const userVehicles = getUserVehicles(CURRENT_USER_ID);
 
-  const userRegistration = mockRegistrations.find(
-    (r) =>
-      r.meetId === meetId &&
-      r.userId === CURRENT_USER_ID &&
-      r.status === "CONFIRMED",
-  );
+  useEffect(() => {
+    if (!meetId) return;
 
-  const meetRegistrations = mockRegistrations.filter(
-    (r) => r.meetId === meetId && r.status === "CONFIRMED",
-  );
+    (async () => {
+      setLoading(true);
+      try {
+        const [m, regs, vehicles, organizer] = await Promise.all([
+          fetchMeet(meetId),
+          fetchRegistrations({ meetId }),
+          fetchVehicles(CURRENT_USER_ID),
+          fetchUser(CURRENT_USER_ID),
+        ]);
+
+        setMeet(m);
+        setMeetRegistrations(regs.filter((r: any) => r.status === "CONFIRMED"));
+        setUserVehicles(vehicles);
+        setUsers([organizer]);
+
+        const yourReg = regs.find(
+          (r: any) => r.userId === CURRENT_USER_ID && r.status === "CONFIRMED",
+        );
+        setUserRegistration(yourReg || null);
+
+        setError(null);
+      } catch (err: any) {
+        setError(err?.message || "Fehler beim Laden der Meet-Daten");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [meetId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-8 text-center max-w-md bg-card border-border">
+          <p>Lade Meet-Daten...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-8 text-center max-w-md bg-card border-border">
+          <p className="text-destructive">{error}</p>
+          <Button onClick={() => window.location.reload()}>
+            Erneut versuchen
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   if (!meet) {
     return (
@@ -85,30 +135,57 @@ export function MeetDetailPage() {
     );
   }
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (registrationRole === "PARTICIPANT" && !selectedVehicleId) {
       toast.error("Bitte wähle ein Fahrzeug aus");
       return;
     }
 
-    // Mock registration
-    toast.success(
-      registrationRole === "PARTICIPANT"
-        ? "Du bist jetzt als Teilnehmer angemeldet!"
-        : "Du bist jetzt als Besucher angemeldet!",
-    );
-    setRegistrationDialogOpen(false);
+    try {
+      await createRegistration({
+        meetId,
+        userId: CURRENT_USER_ID,
+        role: registrationRole,
+        status: "CONFIRMED",
+        vehicleId:
+          registrationRole === "PARTICIPANT" ? selectedVehicleId : null,
+      });
 
-    // In a real app, refresh data here
+      toast.success(
+        registrationRole === "PARTICIPANT"
+          ? "Du bist jetzt als Teilnehmer angemeldet!"
+          : "Du bist jetzt als Besucher angemeldet!",
+      );
+      setRegistrationDialogOpen(false);
+      const regs = await fetchRegistrations({ meetId });
+      setMeetRegistrations(regs.filter((r: any) => r.status === "CONFIRMED"));
+      setUserRegistration(
+        regs.find(
+          (r: any) => r.userId === CURRENT_USER_ID && r.status === "CONFIRMED",
+        ) || null,
+      );
+    } catch (err: any) {
+      toast.error(`Fehler bei der Anmeldung: ${err?.message || err}`);
+    }
   };
 
-  const handleCancelRegistration = () => {
-    toast.success("Anmeldung erfolgreich storniert");
-    // In a real app, refresh data here
+  const handleCancelRegistration = async () => {
+    if (!userRegistration) return;
+
+    try {
+      await cancelRegistration(userRegistration.registrationId);
+      toast.success("Anmeldung erfolgreich storniert");
+
+      const regs = await fetchRegistrations({ meetId });
+      setMeetRegistrations(regs.filter((r: any) => r.status === "CONFIRMED"));
+      setUserRegistration(null);
+    } catch (err: any) {
+      toast.error(`Fehler beim Stornieren: ${err?.message || err}`);
+    }
   };
 
   const isOrganizer = meet.organizerUserId === CURRENT_USER_ID;
-  const organizer = mockUsers.find((u) => u.userId === meet.organizerUserId);
+  const organizer = users.find((u) => u.userId === meet.organizerUserId);
 
   return (
     <div className="min-h-screen">
