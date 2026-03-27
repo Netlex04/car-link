@@ -1,6 +1,10 @@
 import dotenv from "dotenv";
 import express from "express";
+import process from "node:process";
 import logging from "logging";
+import controllers from "./controllers/index.js";
+import * as db from "./database.js";
+import { logRequest, handleError } from "./middleware.js";
 
 console.log("Erste Schritte mit Express");
 console.log("==========================");
@@ -20,25 +24,30 @@ const config = {
 
 const logger = logging.default("main");
 
-const app = express();
+await db.init();
 
-app.use((req, res, next) => {
-  logger.info(`${req.method} ${req.originalUrl}`);
-  next();
-});
+const app = express();
+app.use(express.json());
+app.use(logRequest(logger));
+
+controllers.forEach((registerRoute) => registerRoute(app));
 
 app.get("/", (req, res) => {
-  res.status(200);
-  res.send("Hallo Express");
+  res.status(200).send("Hallo Express");
 });
+
+app.use(handleError(logger));
 
 const server = app.listen(config.port, config.host, () => {
   logger.info(`Server lauscht auf ${config.host}:${config.port}`);
 });
 
-process.on("exit", () => {
+process.on("exit", async () => {
   console.log("Beende Server.");
   server.close();
+  if (db && typeof db.close === "function") {
+    await db.close();
+  }
 });
 
 process.on("SIGHUP", () => process.exit(128 + 1));

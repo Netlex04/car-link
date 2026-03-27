@@ -285,12 +285,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /users/{userId}/vehicles:
+
+  /vehicles:
     get:
       tags: [Vehicles]
-      summary: List vehicles for a user
+      summary: List vehicles (optional userId filter)
       parameters:
-        - $ref: "#/components/parameters/UserId"
+        - name: userId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: OK
@@ -300,19 +306,16 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Vehicle"
-        "404":
-          $ref: "#/components/responses/NotFound"
     post:
       tags: [Vehicles]
-      summary: Create vehicle for a user
-      parameters:
-        - $ref: "#/components/parameters/UserId"
+      summary: Create vehicle (userId required in body)
+      description: Create a vehicle record bound to a user. GET /vehicles is also supported.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/VehicleCreate"
+              $ref: "#/components/schemas/VehicleCreateWithUser"
       responses:
         "201":
           description: Created
@@ -490,7 +493,7 @@ paths:
                 $ref: "#/components/schemas/Registration"
         "404":
           $ref: "#/components/responses/NotFound"
-  /meets/{meetId}/registrations/count:
+  /registrations/meets/{meetId}/count:
     get:
       tags: [Registrations]
       summary: Count registrations for a specific meet
@@ -874,6 +877,32 @@ components:
       type: object
       additionalProperties: false
       properties:
+        make:
+          type: string
+          minLength: 1
+        model:
+          type: string
+          minLength: 1
+        year:
+          type: integer
+          minimum: 1900
+        color:
+          type: string
+        powerHp:
+          type: integer
+          minimum: 0
+        plateOptional:
+          type: string
+        notes:
+          type: string
+    VehicleCreateWithUser:
+      type: object
+      additionalProperties: false
+      required: [userId, make, model]
+      properties:
+        userId:
+          type: string
+          format: uuid
         make:
           type: string
           minLength: 1

@@ -96,12 +96,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /users/{userId}/vehicles:
+  /vehicles:
     get:
       tags: [Vehicles]
-      summary: List vehicles for a user
+      summary: List vehicles (optional filter by userId)
       parameters:
-        - $ref: "#/components/parameters/UserId"
+        - name: userId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: OK
@@ -111,19 +116,15 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Vehicle"
-        "404":
-          $ref: "#/components/responses/NotFound"
     post:
       tags: [Vehicles]
-      summary: Create vehicle for a user
-      parameters:
-        - $ref: "#/components/parameters/UserId"
+      summary: Create vehicle
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/VehicleCreate"
+              $ref: "#/components/schemas/VehicleCreateWithUser"
       responses:
         "201":
           description: Created
@@ -306,7 +307,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /meets/{meetId}/registrations/count:
+  /registrations/meets/{meetId}/count:
     get:
       tags: [Registrations]
       summary: Count registrations for a specific meet
@@ -500,6 +501,16 @@ components:
           type: string
         notes:
           type: string
+
+    VehicleCreateWithUser:
+      allOf:
+        - $ref: "#/components/schemas/VehicleCreate"
+        - type: object
+          required: [userId]
+          properties:
+            userId:
+              type: string
+              format: uuid
 
     Registration:
       type: object

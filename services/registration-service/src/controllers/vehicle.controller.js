@@ -1,17 +1,40 @@
+import * as service from "../services/vehicle.service.js";
+import { throwError } from "../utils.js";
+
+const prefix = "/vehicles";
+
 export default function registerRoutes(app) {
-  app.get("/vehicles", search);
-  app.post("/vehicles", create);
-  app.get("/vehicles/:id", read);
-  app.put("/vehicles/:id", update);
-  app.delete("/vehicles/:id", remove);
+  app.get(`${prefix}`, search);
+  app.post(`${prefix}`, create);
+  app.get(`${prefix}/:id`, read);
+  app.put(`${prefix}/:id`, update);
+  app.delete(`${prefix}/:id`, remove);
 }
 
-async function search(req, res) {}
+async function search(req, res) {
+  const vehicles = await service.search(req.query);
+  res.status(200).json(vehicles);
+}
 
-async function create(req, res) {}
+async function create(req, res) {
+  const vehicle = await service.create(req.body.userId, req.body);
+  res.status(201).json(vehicle);
+}
 
-async function read(req, res) {}
+async function read(req, res) {
+  const vehicle = await service.read(req.params.id);
+  if (!vehicle) throwError("NotFound", "Vehicle not found", 404);
+  res.status(200).json(vehicle);
+}
 
-async function update(req, res) {}
+async function update(req, res) {
+  const updated = await service.update(req.params.id, req.body);
+  if (!updated) throwError("NotFound", "Vehicle not found", 404);
+  res.status(200).json(updated);
+}
 
-async function remove(req, res) {}
+async function remove(req, res) {
+  const removed = await service.remove(req.params.id);
+  if (!removed) throwError("NotFound", "Vehicle not found", 404);
+  res.status(204).send();
+}
