@@ -25,6 +25,8 @@ const config = {
 
 await db.init();
 
+let mqttClient;
+
 // Verbindung zum MQTT-Broker herstellen
 try {
   mqttClient = await mqtt.connect(
