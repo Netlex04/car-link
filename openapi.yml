@@ -1,15 +1,206 @@
+# Copilot-generiert: Kombinierte OpenAPI-Spezifikation aus meet-service.yml und registration-service.yml
+# Zweck: API-Gateway-basierter Single-Entry-Point für alle CarLink Services
 openapi: 3.1.0
 info:
-  title: CarMeet Registration-Service API
+  title: CarMeet Combined API
   version: 1.0.0
 servers:
+  - url: http://localhost:3000
+    description: Meet-Service
   - url: http://localhost:3001
+    description: Registration-Service
 tags:
+  - name: Venues
+  - name: Meets
   - name: Users
   - name: Vehicles
   - name: Registrations
-
 paths:
+  /venues:
+    get:
+      tags: [Venues]
+      summary: List venues
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Venue"
+    post:
+      tags: [Venues]
+      summary: Create a venue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VenueCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Venue"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /venues/{venueId}:
+    get:
+      tags: [Venues]
+      summary: Get a venue by id
+      parameters:
+        - $ref: "#/components/parameters/VenueId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Venue"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Venues]
+      summary: Update venue
+      parameters:
+        - $ref: "#/components/parameters/VenueId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VenueUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Venue"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Venues]
+      summary: Delete venue
+      parameters:
+        - $ref: "#/components/parameters/VenueId"
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Venue is still used by one or more meets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /meets:
+    get:
+      tags: [Meets]
+      summary: List meets (optionally filtered)
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [PLANNED, CANCELLED, DONE]
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MeetResponse"
+    post:
+      tags: [Meets]
+      summary: Create a meet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeetCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /meets/{meetId}:
+    get:
+      tags: [Meets]
+      summary: Get meet by id
+      parameters:
+        - $ref: "#/components/parameters/MeetId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Meets]
+      summary: Update meet (replace editable fields)
+      parameters:
+        - $ref: "#/components/parameters/MeetId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeetUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Meets]
+      summary: Cancel a meet (soft delete)
+      parameters:
+        - $ref: "#/components/parameters/MeetId"
+      responses:
+        "200":
+          description: Cancelled (status=CANCELLED)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /users:
     post:
       tags: [Users]
@@ -35,7 +226,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-
   /users/{userId}:
     get:
       tags: [Users]
@@ -95,7 +285,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-
   /users/{userId}/vehicles:
     get:
       tags: [Vehicles]
@@ -135,7 +324,6 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
-
   /vehicles/{vehicleId}:
     get:
       tags: [Vehicles]
@@ -189,7 +377,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-
   /registrations:
     get:
       tags: [Registrations]
@@ -222,7 +409,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Registration"
-
     post:
       tags: [Registrations]
       summary: Create registration for a meet (participant or visitor)
@@ -253,7 +439,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-
   /registrations/{registrationId}:
     get:
       tags: [Registrations]
@@ -305,7 +490,6 @@ paths:
                 $ref: "#/components/schemas/Registration"
         "404":
           $ref: "#/components/responses/NotFound"
-
   /meets/{meetId}/registrations/count:
     get:
       tags: [Registrations]
@@ -320,7 +504,7 @@ paths:
         - name: role
           in: query
           required: false
-          description: Optional role filter (PARTICIPANT or VISITOR)
+          description: Optional role filter for participant/visitor counts
           schema:
             type: string
             enum: [PARTICIPANT, VISITOR]
@@ -333,9 +517,22 @@ paths:
                 $ref: "#/components/schemas/RegistrationCount"
         "404":
           $ref: "#/components/responses/NotFound"
-
 components:
   parameters:
+    MeetId:
+      name: meetId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    VenueId:
+      name: venueId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
     UserId:
       name: userId
       in: path
@@ -357,7 +554,6 @@ components:
       schema:
         type: string
         format: uuid
-
   responses:
     BadRequest:
       description: Bad Request
@@ -371,7 +567,6 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
-
   schemas:
     Error:
       type: object
@@ -382,7 +577,209 @@ components:
           type: string
         details:
           type: string
-
+    Venue:
+      type: object
+      additionalProperties: false
+      required: [venueId, name, city, country]
+      properties:
+        venueId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+        street:
+          type: string
+        zip:
+          type: string
+        city:
+          type: string
+          minLength: 1
+        country:
+          type: string
+          minLength: 1
+        latitude:
+          type: number
+        longitude:
+          type: number
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    VenueSummary:
+      type: object
+      additionalProperties: false
+      required: [venueId, name, city, country]
+      properties:
+        venueId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+        city:
+          type: string
+          minLength: 1
+        country:
+          type: string
+          minLength: 1
+    VenueCreate:
+      type: object
+      additionalProperties: false
+      required: [name, city, country]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        street:
+          type: string
+        zip:
+          type: string
+        city:
+          type: string
+          minLength: 1
+        country:
+          type: string
+          minLength: 1
+        latitude:
+          type: number
+        longitude:
+          type: number
+        notes:
+          type: string
+    VenueUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+        street:
+          type: string
+        zip:
+          type: string
+        city:
+          type: string
+          minLength: 1
+        country:
+          type: string
+          minLength: 1
+        latitude:
+          type: number
+        longitude:
+          type: number
+        notes:
+          type: string
+    Meet:
+      type: object
+      additionalProperties: false
+      required:
+        - meetId
+        - title
+        - startAt
+        - status
+        - venueId
+        - organizerUserId
+        - createdAt
+      properties:
+        meetId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [PLANNED, CANCELLED, DONE]
+        venueId:
+          type: string
+          format: uuid
+        organizerUserId:
+          type: string
+          format: uuid
+          description: UserId from Registration-Service (no DB FK here)
+        maxParticipants:
+          type: integer
+          minimum: 0
+        maxVisitors:
+          type: integer
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+    MeetResponse:
+      allOf:
+        - $ref: "#/components/schemas/Meet"
+        - type: object
+          additionalProperties: false
+          required: [venue]
+          properties:
+            venue:
+              $ref: "#/components/schemas/VenueSummary"
+    MeetCreate:
+      type: object
+      additionalProperties: false
+      required: [title, startAt, venueId, organizerUserId]
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        venueId:
+          type: string
+          format: uuid
+        organizerUserId:
+          type: string
+          format: uuid
+        maxParticipants:
+          type: integer
+          minimum: 0
+        maxVisitors:
+          type: integer
+          minimum: 0
+    MeetUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [PLANNED, CANCELLED, DONE]
+        venueId:
+          type: string
+          format: uuid
+        maxParticipants:
+          type: integer
+          minimum: 0
+        maxVisitors:
+          type: integer
+          minimum: 0
     User:
       type: object
       additionalProperties: false
@@ -400,7 +797,6 @@ components:
         createdAt:
           type: string
           format: date-time
-
     UserCreate:
       type: object
       additionalProperties: false
@@ -412,7 +808,6 @@ components:
         email:
           type: string
           format: email
-
     UserUpdate:
       type: object
       additionalProperties: false
@@ -423,7 +818,6 @@ components:
         email:
           type: string
           format: email
-
     Vehicle:
       type: object
       additionalProperties: false
@@ -453,7 +847,6 @@ components:
           type: string
         notes:
           type: string
-
     VehicleCreate:
       type: object
       additionalProperties: false
@@ -477,7 +870,6 @@ components:
           type: string
         notes:
           type: string
-
     VehicleUpdate:
       type: object
       additionalProperties: false
@@ -500,7 +892,6 @@ components:
           type: string
         notes:
           type: string
-
     Registration:
       type: object
       additionalProperties: false
@@ -532,7 +923,6 @@ components:
         checkInAt:
           type: [string, "null"]
           format: date-time
-
     RegistrationCreate:
       type: object
       additionalProperties: false
@@ -551,7 +941,6 @@ components:
           type: [string, "null"]
           format: uuid
           description: Required if role=PARTICIPANT, must be null if VISITOR
-
     RegistrationUpdate:
       type: object
       additionalProperties: false
