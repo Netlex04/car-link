@@ -13,8 +13,7 @@ const MEET_TARGET = process.env.MEET_SERVICE_URL || "http://meet-service:3000";
 const REG_TARGET =
   process.env.REGISTRATION_SERVICE_URL || "http://registration-service:3001";
 const FRONTEND_DIST =
-  process.env.FRONTEND_DIST ||
-  path.join(__dirname, "..", "..", "RevMeet Frontend Design", "dist");
+  process.env.FRONTEND_DIST || path.join(__dirname, "..", "frontend");
 const API_TOKEN = process.env.API_GATEWAY_BEARER_TOKEN || "changeme123";
 
 app.use(helmet());

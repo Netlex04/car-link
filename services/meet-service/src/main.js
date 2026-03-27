@@ -45,6 +45,10 @@ app.use(logRequest(logger));
 
 controllers.forEach((registerRoute) => registerRoute(app));
 
+app.get("/", (req, res) => {
+  res.status(200).send("Meet-Service OK");
+});
+
 app.use(handleError(logger));
 
 const server = app.listen(config.port, config.host, () => {

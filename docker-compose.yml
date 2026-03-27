@@ -66,14 +66,15 @@ services:
       retries: 5
 
   api-gateway:
-    build: ./services/api-gateway
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
     ports:
       - "8080:8080"
     environment:
       API_GATEWAY_BEARER_TOKEN: "changeme123"
       MEET_SERVICE_URL: "http://meet-service:3000"
       REGISTRATION_SERVICE_URL: "http://registration-service:3001"
-      FRONTEND_DIST: "/usr/src/app/../RevMeet Frontend Design/dist"
     depends_on:
       meet-service:
         condition: service_healthy

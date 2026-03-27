@@ -33,7 +33,7 @@ app.use(logRequest(logger));
 controllers.forEach((registerRoute) => registerRoute(app));
 
 app.get("/", (req, res) => {
-  res.status(200).send("Hallo Express");
+  res.status(200).send("Registration-Service OK");
 });
 
 app.use(handleError(logger));
