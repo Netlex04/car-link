@@ -15,7 +15,7 @@ const sql = {
                 JOIN venue v ON m.venue_id = v.venue_id
                 WHERE m.meet_id = $1`,
   selectVenue: "SELECT * FROM venue WHERE venue_id = $1",
-  delete: "DELETE FROM meet WHERE meet_id = $1",
+  delete: "DELETE FROM meet WHERE meet_id = $1 RETURNING *",
   insert: `INSERT INTO meet (title, description, start_at, end_at, status, venue_id, organizer_user_id, max_participants, max_visitors)
             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
   update: `UPDATE meet SET title = $1, description = $2, start_at = $3, end_at = $4, status = $5, venue_id = $6, max_participants = $7, max_visitors = $8
@@ -244,6 +244,10 @@ export async function remove(id) {
     return res.rows[0];
   });
 
+  if (!result) {
+    return null;
+  }
+
   const removedMeet = rowToMeet(result);
   await mqttClient.publish(mqttTopics.removeMeet, JSON.stringify(removedMeet));
 
@@ -264,6 +268,10 @@ export async function cancel(id) {
     const res = await client.query(sql.cancel, [id]);
     return res.rows[0];
   });
+
+  if (!result) {
+    return null;
+  }
 
   const cancelledMeet = rowToMeet(result);
   await mqttClient.publish(

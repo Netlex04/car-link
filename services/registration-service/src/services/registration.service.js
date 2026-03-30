@@ -12,7 +12,7 @@ const sql = {
            VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
   update: `UPDATE registration SET meet_id = $1, user_id = $2, vehicle_id = $3, role = $4, status = $5, check_in_at = $6
            WHERE registration_id = $7 RETURNING *`,
-  delete: "DELETE FROM registration WHERE registration_id = $1",
+  delete: "DELETE FROM registration WHERE registration_id = $1 RETURNING *",
   countByMeet:
     "SELECT COUNT(*) AS total, SUM(CASE WHEN role='PARTICIPANT' THEN 1 ELSE 0 END) AS participants, SUM(CASE WHEN role='VISITOR' THEN 1 ELSE 0 END) AS visitors FROM registration WHERE meet_id = $1",
   countByMeetAndRole:
@@ -164,8 +164,12 @@ export async function remove(id) {
   const existing = await read(id);
   if (!existing) return null;
 
-  await query(sql.delete, [id]);
-  return existing;
+  const result = await query(sql.delete, [id]);
+  if (!result.rows.length) {
+    return null;
+  }
+
+  return toRegistration(result.rows[0]);
 }
 
 export async function countByMeet(meetId, role) {
