@@ -2,6 +2,7 @@
 // Entsprechend OpenAPI: /users und /users/{userId}
 
 import { query, withTransaction } from "../database.js";
+import { mqttClient } from "../mqtt.js";
 import { throwError } from "../utils.js";
 
 const sql = {
@@ -10,7 +11,7 @@ const sql = {
   insert: 'INSERT INTO "user" (display_name, email) VALUES ($1,$2) RETURNING *',
   update:
     'UPDATE "user" SET display_name = $1, email = $2 WHERE user_id = $3 RETURNING *',
-  delete: 'DELETE FROM "user" WHERE user_id = $1',
+  delete: 'DELETE FROM "user" WHERE user_id = $1 RETURNING *',
   userVehicles: "SELECT * FROM vehicle WHERE user_id = $1",
   userRegistrations: "SELECT 1 FROM registration WHERE user_id = $1 LIMIT 1",
 };
@@ -121,8 +122,17 @@ export async function remove(userId) {
     );
   }
 
-  await query(sql.delete, [userId]);
-  return existing;
+  const result = await query(sql.delete, [userId]);
+  if (!result.rows.length) {
+    return null;
+  }
+
+  await mqttClient.publish(
+    "users/removed",
+    JSON.stringify(rowToUser(result.rows[0])),
+  );
+
+  return rowToUser(result.rows[0]);
 }
 
 export async function listVehicles(userId) {

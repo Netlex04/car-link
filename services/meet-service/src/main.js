@@ -6,6 +6,7 @@ import controllers from "./controllers/index.js";
 import * as db from "./database.js";
 import { logRequest, handleError } from "./middleware.js";
 import * as mqtt from "./mqtt.js";
+import mqttHandlers from "./mqtt_handlers/index.js";
 
 console.log("Erste Schritte mit Express");
 console.log("==========================");
@@ -34,6 +35,9 @@ try {
     config.mqtt.username,
     config.mqtt.password,
   );
+  for (let mqttHandler of mqttHandlers || []) {
+    await mqttHandler(mqttClient);
+  }
   logger.info("MQTT-Verbindung hergestellt.");
 } catch (err) {
   logger.error("MQTT-Verbindung fehlgeschlagen:", err);

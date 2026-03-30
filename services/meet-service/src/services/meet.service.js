@@ -21,6 +21,7 @@ const sql = {
   update: `UPDATE meet SET title = $1, description = $2, start_at = $3, end_at = $4, status = $5, venue_id = $6, max_participants = $7, max_visitors = $8
             WHERE meet_id = $9 RETURNING *`,
   cancel: "UPDATE meet SET status = 'CANCELLED' WHERE meet_id = $1 RETURNING *",
+  deleteByUser: "DELETE FROM meet WHERE organizer_user_id = $1 RETURNING *",
 };
 
 function rowToVenueSummary(row) {
@@ -280,4 +281,13 @@ export async function cancel(id) {
   );
 
   return cancelledMeet;
+}
+
+// MQTT handlers for external events
+export async function removeByUserId(userId) {
+  if (!userId) {
+    throwError("BadRequest", "userId is required", 400);
+  }
+
+  await query(sql.deleteByUser, [userId]);
 }

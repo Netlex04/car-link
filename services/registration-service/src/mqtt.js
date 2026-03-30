@@ -14,6 +14,7 @@ export let mqttClient = undefined;
 export const mqttTopics = {
   removeMeet: "meets/removed",
   cancelMeet: "meets/cancelled",
+  removeUser: "users/removed",
 };
 
 /**

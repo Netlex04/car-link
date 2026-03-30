@@ -9,6 +9,9 @@ export default async function registerMqttHandlers(mqttClient) {
     if (topic === mqttTopics.removeMeet) {
       handleRemoveMeet(message, topic);
     }
+    if (topic === mqttTopics.cancelMeet) {
+      handleCancelMeet(message, topic);
+    }
   });
 }
 
