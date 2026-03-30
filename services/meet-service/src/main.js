@@ -17,7 +17,7 @@ const config = {
   host: process.env.LISTEN_HOST || "",
   port: process.env.LISTEN_PORT || 3001,
   mqtt: {
-    broker: process.env.MQTT_BROKER || "wss://mqtt.zimolong.eu",
+    broker: process.env.MQTT_BROKER || "mqtt://mqtt-broker:1883",
     username: process.env.MQTT_USERNAME,
     password: process.env.MQTT_PASSWORD,
   },

@@ -3,7 +3,8 @@
 
 import { query, withTransaction } from "../database.js";
 import { throwError } from "../utils.js";
-import mqttClient from "../mqtt.js";
+import { mqttClient } from "../mqtt.js";
+import { mqttTopics } from "../mqtt.js";
 
 const sql = {
   selectAll: `SELECT m.*, v.name AS venue_name, v.city AS venue_city, v.country AS venue_country
@@ -242,7 +243,8 @@ export async function remove(id) {
     return res.rows[0];
   });
 
-  await mqttClient.publish(removeMeet, JSON.stringify(result));
+  const removedMeet = rowToMeet(result);
+  await mqttClient.publish(mqttTopics.removeMeet, JSON.stringify(removedMeet));
 
-  return rowToMeet(result);
+  return removedMeet;
 }

@@ -22,7 +22,11 @@ export const mqttTopics = {
  * @param {string} password Passwort (optional)
  */
 export async function connect(broker, username, password) {
-  mqttClient = await mqtt.connectAsync(broker, { username, password });
+  const options = {};
+  if (username) options.username = username;
+  if (password) options.password = password;
+
+  mqttClient = await mqtt.connectAsync(broker, options);
 
   return mqttClient;
 }

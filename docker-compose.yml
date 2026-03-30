@@ -23,9 +23,14 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: registration
+      MQTT_BROKER: mqtt://mqtt-broker:1883
+      MQTT_USERNAME: ""
+      MQTT_PASSWORD: ""
     depends_on:
       postgres-registration:
         condition: service_healthy
+      mqtt-broker:
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:3001/"]
       interval: 10s
@@ -47,6 +52,15 @@ services:
       timeout: 3s
       retries: 20
 
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0
+    ports:
+      - "1883:1883"
+    volumes:
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
   meet-service:
     build: ./services/meet-service
     ports: ["3000:3000"]
@@ -56,9 +70,14 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: meet
+      MQTT_BROKER: mqtt://mqtt-broker:1883
+      MQTT_USERNAME: ""
+      MQTT_PASSWORD: ""
     depends_on:
       postgres-meet:
         condition: service_healthy
+      mqtt-broker:
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:3000/"]
       interval: 10s
@@ -84,3 +103,5 @@ services:
 volumes:
   pgdata-registration:
   pgdata-meet:
+  mosquitto-data:
+  mosquitto-log:

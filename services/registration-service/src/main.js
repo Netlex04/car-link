@@ -6,6 +6,7 @@ import controllers from "./controllers/index.js";
 import * as db from "./database.js";
 import { logRequest, handleError } from "./middleware.js";
 import * as mqtt from "./mqtt.js";
+import mqttHandlers from "./mqtt_handlers/index.js";
 
 console.log("Erste Schritte mit Express");
 console.log("==========================");
@@ -17,7 +18,7 @@ const config = {
   host: process.env.LISTEN_HOST || "",
   port: process.env.LISTEN_PORT || 3001,
   mqtt: {
-    broker: process.env.MQTT_BROKER || "wss://mqtt.zimolong.eu",
+    broker: process.env.MQTT_BROKER || "mqtt://mqtt-broker:1883",
     username: process.env.MQTT_USERNAME,
     password: process.env.MQTT_PASSWORD,
   },
@@ -34,6 +35,9 @@ try {
     config.mqtt.username,
     config.mqtt.password,
   );
+  for (let mqttHandler of mqttHandlers || []) {
+    await mqttHandler(mqttClient);
+  }
   logger.info("MQTT-Verbindung hergestellt.");
 } catch (err) {
   logger.error("MQTT-Verbindung fehlgeschlagen:", err);
