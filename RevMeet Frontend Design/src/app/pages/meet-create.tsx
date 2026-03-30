@@ -7,7 +7,7 @@ import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
 import { fetchVenues, createVenue, createMeet } from "../lib/api";
-import { toast } from "sonner";
+
 import {
   Select,
   SelectContent,
@@ -248,7 +248,7 @@ export function MeetCreatePage() {
                   </SelectTrigger>
                   <SelectContent>
                     {loadingVenues ? (
-                      <SelectItem value="">Lade Orte...</SelectItem>
+                      <SelectItem value="loading">Lade Orte...</SelectItem>
                     ) : venues.length > 0 ? (
                       venues.map((venue) => (
                         <SelectItem key={venue.venueId} value={venue.venueId}>
@@ -256,11 +256,10 @@ export function MeetCreatePage() {
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem value="">Keine Orte gefunden</SelectItem>
+                      <SelectItem value="none">Keine Orte gefunden</SelectItem>
                     )}
                   </SelectContent>
                 </Select>
-
                 <Dialog
                   open={venueDialogOpen}
                   onOpenChange={setVenueDialogOpen}

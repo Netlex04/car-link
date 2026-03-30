@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   User,
   Mail,
@@ -249,9 +249,9 @@ export function ProfilePage() {
             <h2 className="text-2xl font-bold mb-4">Kommende Meets</h2>
             <div className="space-y-3">
               {upcomingRegistrations.map((reg) => {
-                const meet = mockMeets.find((m) => m.meetId === reg.meetId);
+                const meet = meets.find((m) => m.meetId === reg.meetId);
                 const vehicle = reg.vehicleId
-                  ? mockVehicles.find((v) => v.vehicleId === reg.vehicleId)
+                  ? userVehicles.find((v) => v.vehicleId === reg.vehicleId)
                   : null;
 
                 if (!meet) return null;
@@ -377,7 +377,7 @@ export function ProfilePage() {
             <h2 className="text-2xl font-bold mb-4">Vergangene Meets</h2>
             <div className="space-y-3">
               {pastRegistrations.slice(0, 3).map((reg) => {
-                const meet = mockMeets.find((m) => m.meetId === reg.meetId);
+                const meet = meets.find((m) => m.meetId === reg.meetId);
                 if (!meet) return null;
 
                 return (

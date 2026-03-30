@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Calendar,
   MapPin,
@@ -36,7 +36,7 @@ import {
   createRegistration,
   cancelRegistration,
   fetchVehicles,
-  fetchUsers,
+  fetchUser,
 } from "../lib/api";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
