@@ -22,12 +22,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../components/ui/alert-dialog";
-import { CURRENT_USER_ID } from "../lib/mock-data";
-import { fetchVehicles, createVehicle } from "../lib/api";
+import { fetchVehicles, createVehicle, getCurrentUserId } from "../lib/api";
 import { toast } from "sonner";
 
 export function VehiclesPage() {
   const [vehicles, setVehicles] = useState<any[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string>("");
   const [vehicleDialogOpen, setVehicleDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +48,10 @@ export function VehiclesPage() {
     (async () => {
       setLoading(true);
       try {
-        const data = await fetchVehicles(CURRENT_USER_ID);
+        const userId = await getCurrentUserId();
+        setCurrentUserId(userId);
+
+        const data = await fetchVehicles(userId);
         setVehicles(data);
         setError(null);
       } catch (err: any) {
@@ -99,7 +102,7 @@ export function VehiclesPage() {
         toast.success("Fahrzeug erfolgreich aktualisiert!");
       } else {
         const newVehicle = await createVehicle({
-          userId: CURRENT_USER_ID,
+          userId: currentUserId,
           make,
           model,
           year: year ? Number(year) : undefined,

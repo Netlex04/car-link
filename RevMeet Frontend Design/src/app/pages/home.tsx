@@ -1,14 +1,57 @@
 import { Link } from "react-router";
 import { Calendar, Users, Car, ArrowRight, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import { mockMeets, getRegistrationCount } from "../lib/mock-data";
+import { fetchMeets, fetchRegistrationCount } from "../lib/api";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 
 export function HomePage() {
-  const upcomingMeets = mockMeets
+  const [meets, setMeets] = useState<any[]>([]);
+  const [counts, setCounts] = useState<Record<string, any>>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const meetData = await fetchMeets();
+        setMeets(meetData);
+
+        const countsData = await Promise.all(
+          meetData.slice(0, 3).map(async (m: any) => {
+            const count = await fetchRegistrationCount(m.meetId);
+            return { meetId: m.meetId, count };
+          }),
+        );
+
+        setCounts(
+          countsData.reduce(
+            (acc, item) => {
+              acc[item.meetId] = item.count;
+              return acc;
+            },
+            {} as Record<string, any>,
+          ),
+        );
+
+        setError(null);
+      } catch (err: any) {
+        setError(err?.message || "Fehler beim Laden der Startseite");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const getRegistrationCount = (meetId: string) => {
+    return counts[meetId] || { participants: 0, visitors: 0, total: 0 };
+  };
+
+  const upcomingMeets = meets
     .filter((m) => m.status === "PLANNED")
     .sort(
       (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime(),

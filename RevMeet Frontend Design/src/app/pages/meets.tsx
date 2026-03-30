@@ -12,8 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import { getRegistrationCount } from "../lib/mock-data";
-import { fetchMeets } from "../lib/api";
+import { fetchMeets, fetchRegistrationCount } from "../lib/api";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 
@@ -21,6 +20,7 @@ export function MeetsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [meets, setMeets] = useState<any[]>([]);
+  const [counts, setCounts] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,8 +28,26 @@ export function MeetsPage() {
     (async () => {
       setLoading(true);
       try {
-        const data = await fetchMeets();
-        setMeets(data);
+        const meetData = await fetchMeets();
+        setMeets(meetData);
+
+        const countsData = await Promise.all(
+          meetData.map(async (m: any) => {
+            const count = await fetchRegistrationCount(m.meetId);
+            return { meetId: m.meetId, count };
+          }),
+        );
+
+        setCounts(
+          countsData.reduce(
+            (acc, item) => {
+              acc[item.meetId] = item.count;
+              return acc;
+            },
+            {} as Record<string, any>,
+          ),
+        );
+
         setError(null);
       } catch (err: any) {
         setError(err?.message || "Fehler beim Laden der Meets");
@@ -52,6 +70,9 @@ export function MeetsPage() {
   const sortedMeets = [...filteredMeets].sort(
     (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime(),
   );
+
+  const getRegistrationCountForMeet = (meetId: string) =>
+    counts[meetId] || { participants: 0, visitors: 0, total: 0 };
 
   return (
     <div className="min-h-screen">
@@ -136,7 +157,7 @@ export function MeetsPage() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedMeets.map((meet) => {
-              const counts = getRegistrationCount(meet.meetId);
+              const counts = getRegistrationCountForMeet(meet.meetId);
               const isUpcoming = new Date(meet.startAt) > new Date();
 
               return (

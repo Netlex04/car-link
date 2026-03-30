@@ -21,14 +21,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../components/ui/dialog";
-import { CURRENT_USER_ID } from "../lib/mock-data";
 import {
+  getCurrentUserId,
   fetchUser,
   updateUser,
   fetchVehicles,
   fetchRegistrations,
   fetchMeets,
 } from "../lib/api";
+
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { toast } from "sonner";
@@ -39,6 +40,7 @@ export function ProfilePage() {
   const [userVehicles, setUserVehicles] = useState<any[]>([]);
   const [userRegistrations, setUserRegistrations] = useState<any[]>([]);
   const [meets, setMeets] = useState<any[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string>("");
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -55,7 +57,7 @@ export function ProfilePage() {
   });
 
   const organizedMeets = meets.filter(
-    (m) => m.organizerUserId === CURRENT_USER_ID,
+    (m) => m.organizerUserId === currentUserId,
   );
 
   const handleUpdateProfile = async () => {
@@ -82,12 +84,16 @@ export function ProfilePage() {
     (async () => {
       setLoading(true);
       try {
+        const userId = await getCurrentUserId();
+        setCurrentUserId(userId);
+
         const [user, bookings, places, events] = await Promise.all([
-          fetchUser(CURRENT_USER_ID),
-          fetchRegistrations({ userId: CURRENT_USER_ID }),
-          fetchVehicles(CURRENT_USER_ID),
+          fetchUser(userId),
+          fetchRegistrations({ userId }),
+          fetchVehicles(userId),
           fetchMeets(),
         ]);
+
         setCurrentUser(user);
         setUserVehicles(places);
         setUserRegistrations(

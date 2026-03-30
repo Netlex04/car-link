@@ -29,10 +29,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import { getRegistrationCount, CURRENT_USER_ID } from "../lib/mock-data";
 import {
+  getCurrentUserId,
   fetchMeet,
   fetchRegistrations,
+  fetchRegistrationCount,
   createRegistration,
   cancelRegistration,
   fetchVehicles,
@@ -52,14 +53,14 @@ export function MeetDetailPage() {
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>("");
 
   const [meet, setMeet] = useState<any | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string>("");
   const [meetRegistrations, setMeetRegistrations] = useState<any[]>([]);
   const [userVehicles, setUserVehicles] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [userRegistration, setUserRegistration] = useState<any | null>(null);
+  const [counts, setCounts] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const counts = meet ? getRegistrationCount(meet.meetId) : null;
 
   useEffect(() => {
     if (!meetId) return;
@@ -67,11 +68,14 @@ export function MeetDetailPage() {
     (async () => {
       setLoading(true);
       try {
+        const userId = await getCurrentUserId();
+        setCurrentUserId(userId);
+
         const [m, regs, vehicles, organizer] = await Promise.all([
           fetchMeet(meetId),
           fetchRegistrations({ meetId }),
-          fetchVehicles(CURRENT_USER_ID),
-          fetchUser(CURRENT_USER_ID),
+          fetchVehicles(userId),
+          fetchUser(userId),
         ]);
 
         setMeet(m);
@@ -80,9 +84,12 @@ export function MeetDetailPage() {
         setUsers([organizer]);
 
         const yourReg = regs.find(
-          (r: any) => r.userId === CURRENT_USER_ID && r.status === "CONFIRMED",
+          (r: any) => r.userId === userId && r.status === "CONFIRMED",
         );
         setUserRegistration(yourReg || null);
+
+        const countData = await fetchRegistrationCount(meetId);
+        setCounts(countData);
 
         setError(null);
       } catch (err: any) {
@@ -144,7 +151,7 @@ export function MeetDetailPage() {
     try {
       await createRegistration({
         meetId,
-        userId: CURRENT_USER_ID,
+        userId: currentUserId,
         role: registrationRole,
         status: "CONFIRMED",
         vehicleId:
@@ -161,7 +168,7 @@ export function MeetDetailPage() {
       setMeetRegistrations(regs.filter((r: any) => r.status === "CONFIRMED"));
       setUserRegistration(
         regs.find(
-          (r: any) => r.userId === CURRENT_USER_ID && r.status === "CONFIRMED",
+          (r: any) => r.userId === currentUserId && r.status === "CONFIRMED",
         ) || null,
       );
     } catch (err: any) {
@@ -184,7 +191,7 @@ export function MeetDetailPage() {
     }
   };
 
-  const isOrganizer = meet.organizerUserId === CURRENT_USER_ID;
+  const isOrganizer = meet.organizerUserId === currentUserId;
   const organizer = users.find((u) => u.userId === meet.organizerUserId);
 
   return (

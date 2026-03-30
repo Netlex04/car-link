@@ -27,6 +27,36 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return response.json();
 }
 
+export const CURRENT_USER_KEY = "carlink_current_user_id";
+
+export async function createUser(payload: Record<string, unknown>) {
+  return request<any>("/users", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getCurrentUserId() {
+  const stored = localStorage.getItem(CURRENT_USER_KEY);
+  if (stored) {
+    try {
+      await fetchUser(stored);
+      return stored;
+    } catch {
+      localStorage.removeItem(CURRENT_USER_KEY);
+    }
+  }
+
+  const now = Date.now();
+  const created = await createUser({
+    displayName: "Max Power",
+    email: `max+${now}@carlink.de`,
+  });
+  const id = created.userId;
+  localStorage.setItem(CURRENT_USER_KEY, id);
+  return id;
+}
+
 export async function fetchMeets() {
   return request<any[]>("/meets");
 }
@@ -77,6 +107,19 @@ export async function fetchRegistrations(
   const qs = new URLSearchParams();
   Object.entries(filters).forEach(([k, v]) => v && qs.append(k, v));
   return request<any[]>(`/registrations?${qs.toString()}`);
+}
+
+export async function fetchRegistrationCount(
+  meetId: string,
+  role?: "PARTICIPANT" | "VISITOR",
+) {
+  const query = role ? `?role=${role}` : "";
+  return request<{
+    meetId: string;
+    participants: number;
+    visitors: number;
+    total: number;
+  }>(`/registrations/meets/${meetId}/count${query}`);
 }
 
 export async function createRegistration(reg: Record<string, unknown>) {
