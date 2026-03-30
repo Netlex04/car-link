@@ -1,5 +1,6 @@
 import { logger } from "../utils.js";
 import { mqttTopics } from "../mqtt.js";
+import * as service from "../services/registration.service.js";
 
 export default async function registerMqttHandlers(mqttClient) {
   mqttClient.subscribeAsync(mqttTopics.removeMeet);
@@ -27,7 +28,7 @@ async function handleRemoveMeet(message, topic) {
     return;
   }
 
-  registrationService
+  service
     .removeByMeetId(meetId)
     .then(() => {
       logger.info(`Removed registrations for meet ID ${meetId}`);

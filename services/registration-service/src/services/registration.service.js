@@ -17,6 +17,7 @@ const sql = {
     "SELECT COUNT(*) AS total, SUM(CASE WHEN role='PARTICIPANT' THEN 1 ELSE 0 END) AS participants, SUM(CASE WHEN role='VISITOR' THEN 1 ELSE 0 END) AS visitors FROM registration WHERE meet_id = $1",
   countByMeetAndRole:
     "SELECT COUNT(*) AS total FROM registration WHERE meet_id = $1 AND role = $2",
+  deleteByMeet: "DELETE FROM registration WHERE meet_id = $1",
 };
 
 function toRegistration(row) {
@@ -186,4 +187,12 @@ export async function countByMeet(meetId, role) {
     participants: Number(result.rows[0]?.participants || 0),
     visitors: Number(result.rows[0]?.visitors || 0),
   };
+}
+
+export async function removeByMeetId(meetId) {
+  if (!meetId) {
+    throwError("BadRequest", "meetId is required", 400);
+  }
+
+  await query(sql.deleteByMeet, [meetId]);
 }
