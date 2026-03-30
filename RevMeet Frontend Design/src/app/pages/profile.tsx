@@ -201,7 +201,7 @@ export function ProfilePage() {
         {/* Vehicles Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold">Meine Fahrzeuge</h2>
+            <h2 className="text-2xl font-bold text-white">Meine Fahrzeuge</h2>
             <Link to="/vehicles">
               <Button variant="outline" size="sm">
                 Verwalten

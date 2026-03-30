@@ -6,7 +6,12 @@ import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
-import { fetchVenues, createVenue, createMeet } from "../lib/api";
+import {
+  getCurrentUserId,
+  fetchVenues,
+  createVenue,
+  createMeet,
+} from "../lib/api";
 
 import {
   Select,
@@ -110,13 +115,14 @@ export function MeetCreatePage() {
       const endAt =
         endDate && endTime ? `${endDate}T${endTime}:00Z` : undefined;
 
+      const userId = await getCurrentUserId();
       await createMeet({
         title,
         description,
         startAt,
         endAt,
         venueId,
-        organizerUserId: "user-123",
+        organizerUserId: userId,
         maxParticipants: maxParticipants ? Number(maxParticipants) : undefined,
         maxVisitors: maxVisitors ? Number(maxVisitors) : undefined,
       });
