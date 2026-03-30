@@ -2,6 +2,7 @@
 
 # TODOS
 
+- Bei meets / registrations zwischen CANCELLED und löschen unterscheiden
 - Dokumentation, JSDocs
 - MQTT: Meet gelöscht -> registrations löschen, user wird gelöscht -> Seine Meets löschen
 

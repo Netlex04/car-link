@@ -183,7 +183,7 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
-    delete:
+    patch:
       tags: [Meets]
       summary: Cancel a meet (soft delete)
       parameters:
@@ -195,6 +195,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MeetResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Meets]
+      summary: Delete a meet
+      parameters:
+        - $ref: "#/components/parameters/MeetId"
+      responses:
+        "204":
+          description: Deleted
         "404":
           $ref: "#/components/responses/NotFound"
 

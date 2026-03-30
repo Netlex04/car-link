@@ -8,6 +8,7 @@ export default function registerRoutes(app) {
   app.post(`${prefix}`, create);
   app.get(`${prefix}/:id`, read);
   app.put(`${prefix}/:id`, update);
+  app.patch(`${prefix}/:id/cancel`, cancel);
   app.delete(`${prefix}/:id`, remove);
   app.get(`${prefix}/meets/:meetId/count`, count);
 }
@@ -51,4 +52,13 @@ async function count(req, res) {
   const role = req.query.role;
   const result = await service.countByMeet(meetId, role);
   res.status(200).json(result);
+}
+
+async function cancel(req, res) {
+  const id = req.params.id;
+  const cancelled = await service.cancel(id);
+  if (!cancelled) {
+    throwError("NotFound", "Registration not found", 404);
+  }
+  res.status(200).json(cancelled);
 }

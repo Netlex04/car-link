@@ -292,6 +292,20 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Registrations]
+      summary: Cancel registration (soft delete)
+      parameters:
+        - $ref: "#/components/parameters/RegistrationId"
+      responses:
+        "200":
+          description: Cancelled (status=CANCELLED)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Registration"
+        "404":
+          $ref: "#/components/responses/NotFound"
     delete:
       tags: [Registrations]
       summary: Cancel registration (soft delete)

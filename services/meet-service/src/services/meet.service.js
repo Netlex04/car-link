@@ -15,6 +15,7 @@ const sql = {
                 JOIN venue v ON m.venue_id = v.venue_id
                 WHERE m.meet_id = $1`,
   selectVenue: "SELECT * FROM venue WHERE venue_id = $1",
+  delete: "DELETE FROM meet WHERE meet_id = $1",
   insert: `INSERT INTO meet (title, description, start_at, end_at, status, venue_id, organizer_user_id, max_participants, max_visitors)
             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
   update: `UPDATE meet SET title = $1, description = $2, start_at = $3, end_at = $4, status = $5, venue_id = $6, max_participants = $7, max_visitors = $8
@@ -239,7 +240,7 @@ export async function remove(id) {
   }
 
   const result = await withTransaction(async (client) => {
-    const res = await client.query(sql.cancel, [id]);
+    const res = await client.query(sql.delete, [id]);
     return res.rows[0];
   });
 
@@ -247,4 +248,28 @@ export async function remove(id) {
   await mqttClient.publish(mqttTopics.removeMeet, JSON.stringify(removedMeet));
 
   return removedMeet;
+}
+
+export async function cancel(id) {
+  if (!id) {
+    throwError("BadRequest", "ID is required", 400);
+  }
+
+  const existing = await read(id);
+  if (!existing) {
+    return null;
+  }
+
+  const result = await withTransaction(async (client) => {
+    const res = await client.query(sql.cancel, [id]);
+    return res.rows[0];
+  });
+
+  const cancelledMeet = rowToMeet(result);
+  await mqttClient.publish(
+    mqttTopics.cancelMeet,
+    JSON.stringify(cancelledMeet),
+  );
+
+  return cancelledMeet;
 }

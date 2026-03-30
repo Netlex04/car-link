@@ -17,7 +17,11 @@ const sql = {
     "SELECT COUNT(*) AS total, SUM(CASE WHEN role='PARTICIPANT' THEN 1 ELSE 0 END) AS participants, SUM(CASE WHEN role='VISITOR' THEN 1 ELSE 0 END) AS visitors FROM registration WHERE meet_id = $1",
   countByMeetAndRole:
     "SELECT COUNT(*) AS total FROM registration WHERE meet_id = $1 AND role = $2",
+  cancel:
+    "UPDATE registration SET status = 'CANCELLED' WHERE registration_id = $1 RETURNING *",
   deleteByMeet: "DELETE FROM registration WHERE meet_id = $1",
+  cancelByMeet:
+    "UPDATE registration SET status = 'CANCELLED' WHERE meet_id = $1 RETURNING *",
 };
 
 function toRegistration(row) {
@@ -189,10 +193,38 @@ export async function countByMeet(meetId, role) {
   };
 }
 
+export async function cancel(id) {
+  if (!id) {
+    throwError("BadRequest", "ID is required", 400);
+  }
+
+  const existing = await read(id);
+  if (!existing) {
+    return null;
+  }
+
+  const result = await withTransaction(async (client) => {
+    const res = await client.query(sql.cancel, [id]);
+    return res.rows[0];
+  });
+
+  return toRegistration(result);
+}
+
+// MQTT-bezogene Funktionen
+
 export async function removeByMeetId(meetId) {
   if (!meetId) {
     throwError("BadRequest", "meetId is required", 400);
   }
 
   await query(sql.deleteByMeet, [meetId]);
+}
+
+export async function cancelByMeetId(meetId) {
+  if (!meetId) {
+    throwError("BadRequest", "meetId is required", 400);
+  }
+
+  await query(sql.cancelByMeet, [meetId]);
 }
