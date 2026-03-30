@@ -223,8 +223,7 @@ export async function update(id, meet) {
     return res.rows[0];
   });
 
-  const response = await query(sql.selectById, [id]);
-  return rowToMeet(response.rows[0]);
+  return rowToMeet(result);
 }
 
 export async function remove(id) {
@@ -242,6 +241,5 @@ export async function remove(id) {
     return res.rows[0];
   });
 
-  const response = await query(sql.selectById, [id]);
-  return rowToMeet(response.rows[0]);
+  return rowToMeet(result);
 }
