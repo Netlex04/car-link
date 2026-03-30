@@ -3,7 +3,7 @@
 # TODOS
 
 - Dokumentation, JSDocs
-- MQTT: Meet status auf cancelled -> Meet Registrations auf cancelled, Meet gelöscht -> registrations löschen, user wird gelöscht -> Seine Meets löschen
+- MQTT: Meet gelöscht -> registrations löschen, user wird gelöscht -> Seine Meets löschen
 
 ## API Gateway (Express)
 

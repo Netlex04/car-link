@@ -3,6 +3,7 @@
 
 import { query, withTransaction } from "../database.js";
 import { throwError } from "../utils.js";
+import mqttClient from "../mqtt.js";
 
 const sql = {
   selectAll: `SELECT m.*, v.name AS venue_name, v.city AS venue_city, v.country AS venue_country
@@ -240,6 +241,8 @@ export async function remove(id) {
     const res = await client.query(sql.cancel, [id]);
     return res.rows[0];
   });
+
+  await mqttClient.publish(removeMeet, JSON.stringify(result));
 
   return rowToMeet(result);
 }

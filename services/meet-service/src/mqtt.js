@@ -12,7 +12,7 @@ export let mqttClient = undefined;
  * Verwendung derselben Werte zu vermeiden).
  */
 export const mqttTopics = {
-  hello: "wwi24b2/schulmeister/hello",
+  removeMeet: "meets/removed",
 };
 
 /**
