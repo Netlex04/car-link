@@ -118,7 +118,7 @@ export function HomePage() {
           <div className="grid grid-cols-3 gap-4 md:gap-8 max-w-3xl mx-auto mt-16">
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-primary">
-                {mockMeets.length}+
+                {meets.length}+
               </div>
               <div className="text-sm text-muted-foreground mt-1">Carmeets</div>
             </div>

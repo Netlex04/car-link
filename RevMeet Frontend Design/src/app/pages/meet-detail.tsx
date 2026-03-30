@@ -423,9 +423,9 @@ export function MeetDetailPage() {
             </h2>
             <div className="space-y-3">
               {meetRegistrations.slice(0, 5).map((reg) => {
-                const user = mockUsers.find((u) => u.userId === reg.userId);
+                const user = users.find((u) => u.userId === reg.userId);
                 const vehicle = reg.vehicleId
-                  ? mockVehicles.find((v) => v.vehicleId === reg.vehicleId)
+                  ? userVehicles.find((v) => v.vehicleId === reg.vehicleId)
                   : null;
 
                 return (
