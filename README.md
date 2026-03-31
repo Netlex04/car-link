@@ -46,6 +46,16 @@ Je Service (meet/registration):
 - Controller in `controllers/`
 - Business-Logik in `services/`
 - Fehlerhandling in `middleware.js`
+- Health-Check: Beide Services geben unter `/` (meet-service) bzw. `/health` (registration-service) Status zurück
+
+### API Gateway
+
+- Ort: `services/api-gateway`
+- Funktion: zentraler Reverse-Proxy/Router für Anfragen an `meet-service`, `registration-service`, und Bereitstellung des Frontends
+- Frontend-Build im Dockerfile:
+  - Multi-Stage Build: zuerst Frontend in einem Build-Image (Vite + npm install, npm run build)
+  - dann Ingtabenriertes statisches Bundle ins Final-Image kopieren
+  - Ergebnis: schlankes Gateway-Image, das statische UI-Dateien schnell per Caching ausliefert
 
 ### API
 
