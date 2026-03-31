@@ -2,6 +2,14 @@
 // Erzeugt von Copilot als Antwort auf: "Soll man hier prefix verwenden ... count"
 // umfasst CRUD + count-by-meetId.
 
+/**
+ * Registration-Service (CRUD + Zahl- und Stornierungsfunktionen).
+ *
+ * Enthält:
+ * - search/create/read/update/remove
+ * - countByMeet (optionales role-filter)
+ * - cancel + MQTT-Operationen (removeByMeetId/cancelByMeetId)
+ */
 import { query, withTransaction } from "../database.js";
 import { throwError } from "../utils.js";
 
@@ -24,6 +32,12 @@ const sql = {
     "UPDATE registration SET status = 'CANCELLED' WHERE meet_id = $1 RETURNING *",
 };
 
+/**
+ * Wandelt eine Registration-DB-Zeile in ein API-Objekt um.
+ *
+ * @param {object|null} row DB-Zeile
+ * @returns {object|null} Registration-Objekt oder null
+ */
 function toRegistration(row) {
   if (!row) return null;
   return {
@@ -40,6 +54,13 @@ function toRegistration(row) {
   };
 }
 
+/**
+ * Validiert Registration-Payload für create/update.
+ *
+ * @param {object} payload Eingabedaten
+ * @param {boolean} [isCreate=true] true bei create
+ * @returns {object} Bereinigte Registration-Daten
+ */
 function validateRegistrationPayload(payload, isCreate = true) {
   if (!payload || typeof payload !== "object") {
     throwError("BadRequest", "Payload is required and must be an object", 400);
@@ -72,6 +93,12 @@ function validateRegistrationPayload(payload, isCreate = true) {
   };
 }
 
+/**
+ * Sucht Registrations mit optionalen Filtern.
+ *
+ * @param {object} [filters] Optional: meetId, userId, role
+ * @returns {Promise<Array>} Liste der Registrations
+ */
 export async function search(filters = {}) {
   const params = [];
   const conditions = [];
@@ -94,6 +121,12 @@ export async function search(filters = {}) {
   return result.rows.map(toRegistration);
 }
 
+/**
+ * Erstellt eine neue Registration.
+ *
+ * @param {object} payload Registration-Daten
+ * @returns {Promise<object>} Erstellte Registration
+ */
 export async function create(payload) {
   const r = validateRegistrationPayload(payload, true);
 
@@ -112,6 +145,12 @@ export async function create(payload) {
   return toRegistration(created);
 }
 
+/**
+ * Liest eine Registration per ID.
+ *
+ * @param {string} id Registration-ID
+ * @returns {Promise<object|null>} Registration oder null
+ */
 export async function read(id) {
   if (!id) {
     throwError("BadRequest", "ID is required", 400);
@@ -121,6 +160,13 @@ export async function read(id) {
   return toRegistration(result.rows[0]);
 }
 
+/**
+ * Aktualisiert eine Registration per ID.
+ *
+ * @param {string} id Registration-ID
+ * @param {object} payload Update-Daten
+ * @returns {Promise<object|null>} Aktualisierte Registration oder null
+ */
 export async function update(id, payload) {
   if (!id) {
     throwError("BadRequest", "ID is required", 400);
@@ -156,6 +202,12 @@ export async function update(id, payload) {
   return toRegistration(result);
 }
 
+/**
+ * Löscht eine Registration per ID.
+ *
+ * @param {string} id Registration-ID
+ * @returns {Promise<object|null>} Gelöschte Registration oder null
+ */
 export async function remove(id) {
   if (!id) {
     throwError("BadRequest", "ID is required", 400);
@@ -172,6 +224,13 @@ export async function remove(id) {
   return toRegistration(result.rows[0]);
 }
 
+/**
+ * Zählt Registrations für ein Meet (optional nach Rolle).
+ *
+ * @param {string} meetId Meet-ID
+ * @param {string} [role] Optional: 'PARTICIPANT' oder 'VISITOR'
+ * @returns {Promise<object>} Statistik
+ */
 export async function countByMeet(meetId, role) {
   if (!meetId) {
     throwError("BadRequest", "meetId is required", 400);
@@ -197,6 +256,12 @@ export async function countByMeet(meetId, role) {
   };
 }
 
+/**
+ * Markiert eine Registration als CANCELLED.
+ *
+ * @param {string} id Registration-ID
+ * @returns {Promise<object|null>} Aktualisierte Registration oder null
+ */
 export async function cancel(id) {
   if (!id) {
     throwError("BadRequest", "ID is required", 400);
@@ -217,6 +282,12 @@ export async function cancel(id) {
 
 // MQTT-bezogene Funktionen
 
+/**
+ * Entfernt Registrations zu einem Meet (MQTT-Fall).
+ *
+ * @param {string} meetId Meet-ID
+ * @returns {Promise<void>}
+ */
 export async function removeByMeetId(meetId) {
   if (!meetId) {
     throwError("BadRequest", "meetId is required", 400);
@@ -225,6 +296,12 @@ export async function removeByMeetId(meetId) {
   await query(sql.deleteByMeet, [meetId]);
 }
 
+/**
+ * Markiert Registrations eines Meets als CANCELLED (MQTT-Fall).
+ *
+ * @param {string} meetId Meet-ID
+ * @returns {Promise<void>}
+ */
 export async function cancelByMeetId(meetId) {
   if (!meetId) {
     throwError("BadRequest", "meetId is required", 400);

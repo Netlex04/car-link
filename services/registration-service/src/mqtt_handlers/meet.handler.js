@@ -2,6 +2,11 @@ import { logger } from "../utils.js";
 import { mqttTopics } from "../mqtt.js";
 import * as service from "../services/registration.service.js";
 
+/**
+ * Registiert MQTT-Handler für Meet-Events.
+ *
+ * @param {object} mqttClient MQTT-Client
+ */
 export default async function registerMqttHandlers(mqttClient) {
   mqttClient.subscribeAsync(mqttTopics.removeMeet);
 
@@ -15,6 +20,12 @@ export default async function registerMqttHandlers(mqttClient) {
   });
 }
 
+/**
+ * Verarbeitet removeMeet-Nachrichten und löscht zugehörige Registrierungen.
+ *
+ * @param {Buffer} message MQTT-Botschaft
+ * @param {string} topic MQTT-Topic
+ */
 async function handleRemoveMeet(message, topic) {
   const meet = JSON.parse(message.toString());
   const meetId = meet?.meetId || meet?.meet_id || meet?.id;
@@ -41,6 +52,12 @@ async function handleRemoveMeet(message, topic) {
     });
 }
 
+/**
+ * Verarbeitet cancelMeet-Nachrichten und markiert zugehörige Registrierungen abgebrochen.
+ *
+ * @param {Buffer} message MQTT-Botschaft
+ * @param {string} topic MQTT-Topic
+ */
 export async function handleCancelMeet(message, topic) {
   const meet = JSON.parse(message.toString());
   const meetId = meet?.meetId || meet?.meet_id || meet?.id;

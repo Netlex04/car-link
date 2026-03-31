@@ -16,6 +16,12 @@ const sql = {
   userRegistrations: "SELECT 1 FROM registration WHERE user_id = $1 LIMIT 1",
 };
 
+/**
+ * Formatiert eine Benutzer-DB-Zeile in ein API-Objekt.
+ *
+ * @param {object|null} row DB-Zeile
+ * @returns {object|null} User-Objekt oder null
+ */
 function rowToUser(row) {
   if (!row) return null;
   return {
@@ -26,6 +32,13 @@ function rowToUser(row) {
   };
 }
 
+/**
+ * Validiert User-Payload für create/update.
+ *
+ * @param {object} payload Payload
+ * @param {boolean} [isCreate=true] true bei Erstellung
+ * @returns {{displayName: string|null, email: string|null}}
+ */
 function validateUserPayload(payload, isCreate = true) {
   if (!payload || typeof payload !== "object") {
     throwError(
@@ -52,6 +65,12 @@ function validateUserPayload(payload, isCreate = true) {
   };
 }
 
+/**
+ * Erstellt einen neuen Nutzer.
+ *
+ * @param {object} payload Nutzerdaten
+ * @returns {Promise<object>} Erstellter Nutzer
+ */
 export async function create(payload) {
   const user = validateUserPayload(payload, true);
 
@@ -71,12 +90,25 @@ export async function create(payload) {
   return rowToUser(created);
 }
 
+/**
+ * Liest einen Benutzer per ID.
+ *
+ * @param {string} userId Benutzer-ID
+ * @returns {Promise<object|null>} Benutzer oder null
+ */
 export async function read(userId) {
   if (!userId) throwError("BadRequest", "userId is required", 400);
   const result = await query(sql.selectById, [userId]);
   return rowToUser(result.rows[0]);
 }
 
+/**
+ * Aktualisiert einen Benutzer.
+ *
+ * @param {string} userId Benutzer-ID
+ * @param {object} payload Update-Daten
+ * @returns {Promise<object|null>} Aktualisierter Benutzer oder null
+ */
 export async function update(userId, payload) {
   if (!userId) throwError("BadRequest", "userId is required", 400);
 
@@ -105,6 +137,12 @@ export async function update(userId, payload) {
   return rowToUser(updated);
 }
 
+/**
+ * Entfernt einen Benutzer (wenn keine Referenzen existieren).
+ *
+ * @param {string} userId Benutzer-ID
+ * @returns {Promise<object|null>} Entferntes Benutzerobjekt oder null
+ */
 export async function remove(userId) {
   if (!userId) throwError("BadRequest", "userId is required", 400);
 
@@ -135,6 +173,12 @@ export async function remove(userId) {
   return rowToUser(result.rows[0]);
 }
 
+/**
+ * Listet Fahrzeuge eines Nutzers auf.
+ *
+ * @param {string} userId Benutzer-ID
+ * @returns {Promise<Array>} Array von Fahrzeugen
+ */
 export async function listVehicles(userId) {
   if (!userId) throwError("BadRequest", "userId is required", 400);
 

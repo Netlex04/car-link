@@ -16,6 +16,12 @@ const sql = {
     "SELECT 1 FROM registration WHERE vehicle_id = $1 LIMIT 1",
 };
 
+/**
+ * Konvertiert eine Vehicle DB-Zeile in das API-Objekt.
+ *
+ * @param {object|null} row Datenbank-Zeile
+ * @returns {object|null} Fahrzeug-Objekt oder null
+ */
 function rowToVehicle(row) {
   if (!row) return null;
   return {
@@ -31,6 +37,13 @@ function rowToVehicle(row) {
   };
 }
 
+/**
+ * Validiert Vehicle Payload für Erstellen/Aktualisieren.
+ *
+ * @param {object} payload Payload
+ * @param {boolean} [isCreate=true] true beim Erstellen
+ * @returns {object} Validierte Felder
+ */
 function validateVehiclePayload(payload, isCreate = true) {
   if (!payload || typeof payload !== "object") {
     throwError(
@@ -61,6 +74,12 @@ function validateVehiclePayload(payload, isCreate = true) {
   };
 }
 
+/**
+ * Suche Fahrzeuge, optional nach userId.
+ *
+ * @param {object} [filters={}] Filter: userId
+ * @returns {Promise<Array>} Fahrzeuge
+ */
 export async function search(filters = {}) {
   if (filters.userId) {
     const result = await query(sql.selectByUser, [filters.userId]);
@@ -70,6 +89,13 @@ export async function search(filters = {}) {
   return result.rows.map(rowToVehicle);
 }
 
+/**
+ * Erzeugt ein neues Fahrzeug für einen User.
+ *
+ * @param {string} userId User-ID (Pfadparameter)
+ * @param {object} payload Fahrzeugdaten
+ * @returns {Promise<object>} Erstelltes Vehicle
+ */
 export async function create(userId, payload) {
   const vehicle = validateVehiclePayload(payload, true);
 
@@ -94,12 +120,25 @@ export async function create(userId, payload) {
   return rowToVehicle(created);
 }
 
+/**
+ * Liest ein Fahrzeug per ID.
+ *
+ * @param {string} vehicleId Fahrzeug-ID
+ * @returns {Promise<object|null>} Fahrzeug oder null
+ */
 export async function read(vehicleId) {
   if (!vehicleId) throwError("BadRequest", "vehicleId is required", 400);
   const result = await query(sql.selectById, [vehicleId]);
   return rowToVehicle(result.rows[0]);
 }
 
+/**
+ * Aktualisiert ein Fahrzeug.
+ *
+ * @param {string} vehicleId Fahrzeug-ID
+ * @param {object} payload Update-Payload
+ * @returns {Promise<object|null>} Aktualisiertes Fahrzeug oder null
+ */
 export async function update(vehicleId, payload) {
   if (!vehicleId) throwError("BadRequest", "vehicleId is required", 400);
 
@@ -138,6 +177,12 @@ export async function update(vehicleId, payload) {
   return rowToVehicle(result);
 }
 
+/**
+ * Löscht ein Fahrzeug (wenn keine Registrierungen existieren).
+ *
+ * @param {string} vehicleId Fahrzeug-ID
+ * @returns {Promise<object|null>} Gelöschtes Fahrzeug oder null
+ */
 export async function remove(vehicleId) {
   if (!vehicleId) throwError("BadRequest", "vehicleId is required", 400);
 

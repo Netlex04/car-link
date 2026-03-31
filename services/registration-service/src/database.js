@@ -1,9 +1,25 @@
 // Von Copilot generierte Datei - Instructions in .github wurden nicht beachtet. Prompt: "Hier habe ich dir ein beispiel hinterlegt, wie ein schema in einer anderen applikation angelegt wurde. Mache dasselbe jeweils in der datei database.js in beiden services (meet-service, registration-service) aber für unsere postgres (pool wird in database.js schon angelegt) mit folgendem Schema: *Schema*"
 
+/**
+ * Datenbank-Modul für den Registration-Service.
+ *
+ * Dieses Modul bietet:
+ * - Pool-Verwaltung (pg-Pool)
+ * - Abfragen (`query`)
+ * - Transaktionen (`withTransaction`)
+ * - Verbindung beenden (`close`)
+ * - Schema-Initialisierung (`init`)
+ */
 import pkg from "pg";
 import dotenv from "dotenv";
+
 dotenv.config();
 
+/**
+ * Postgres-Verbindungspool.
+ *
+ * Konfiguration per ENV: DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
+ */
 const pool = new pkg.Pool({
   host: process.env.DB_HOST || "localhost",
   port: Number(process.env.DB_PORT || 5432),
@@ -13,11 +29,24 @@ const pool = new pkg.Pool({
   max: 10,
 });
 
+/**
+ * Führt eine SQL-Abfrage aus.
+ *
+ * @param {string} text SQL-Query
+ * @param {Array} [params] Parameter
+ * @returns {Promise<object>} Ergebnis
+ */
 export async function query(text, params) {
   const res = await pool.query(text, params);
   return res;
 }
 
+/**
+ * Führt eine Callback innerhalb einer Transaktion aus.
+ *
+ * @param {Function} callback Async-Funktion mit Client
+ * @returns {Promise<any>} Ergebnis des Callbacks
+ */
 export async function withTransaction(callback) {
   const client = await pool.connect();
 
@@ -38,10 +67,20 @@ export async function withTransaction(callback) {
   }
 }
 
+/**
+ * Schließt den DB-Pool (z.B. beim Herunterfahren).
+ *
+ * @returns {Promise<void>}
+ */
 export async function close() {
   await pool.end();
 }
 
+/**
+ * Initialisiert das Datenbankschema für Registration-Service.
+ *
+ * @returns {Promise<void>}
+ */
 export async function init() {
   await query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
 

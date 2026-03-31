@@ -3,6 +3,11 @@ import { throwError } from "../utils.js";
 
 const prefix = "/registrations";
 
+/**
+ * Registriert Registration-Endpunkte.
+ *
+ * @param {object} app Express App
+ */
 export default function registerRoutes(app) {
   app.get(`${prefix}`, search);
   app.post(`${prefix}`, create);
@@ -13,16 +18,34 @@ export default function registerRoutes(app) {
   app.get(`${prefix}/meets/:meetId/count`, count);
 }
 
+/**
+ * Listet Registrations mit optionalen Filtern.
+ *
+ * @param {object} req Express Request
+ * @param {object} res Express Response
+ */
 async function search(req, res) {
   const registrations = await service.search(req.query);
   res.status(200).json(registrations);
 }
 
+/**
+ * Erstellt eine Registrierung.
+ *
+ * @param {object} req Express Request
+ * @param {object} res Express Response
+ */
 async function create(req, res) {
   const created = await service.create(req.body);
   res.status(201).json(created);
 }
 
+/**
+ * Gibt eine Registrierung per ID zurück.
+ *
+ * @param {object} req Express Request
+ * @param {object} res Express Response
+ */
 async function read(req, res) {
   const registration = await service.read(req.params.id);
   if (!registration) {
@@ -31,6 +54,12 @@ async function read(req, res) {
   res.status(200).json(registration);
 }
 
+/**
+ * Aktualisiert eine Registrierung per ID.
+ *
+ * @param {object} req Express Request
+ * @param {object} res Express Response
+ */
 async function update(req, res) {
   const updated = await service.update(req.params.id, req.body);
   if (!updated) {
@@ -39,6 +68,12 @@ async function update(req, res) {
   res.status(200).json(updated);
 }
 
+/**
+ * Löscht eine Registrierung per ID.
+ *
+ * @param {object} req Express Request
+ * @param {object} res Express Response
+ */
 async function remove(req, res) {
   const old = await service.remove(req.params.id);
   if (!old) {
@@ -47,6 +82,12 @@ async function remove(req, res) {
   res.status(204).send();
 }
 
+/**
+ * Gibt die Anzahl Registrierungen für einen Meet zurück.
+ *
+ * @param {object} req Express Request
+ * @param {object} res Express Response
+ */
 async function count(req, res) {
   const meetId = req.params.meetId;
   const role = req.query.role;
@@ -54,6 +95,12 @@ async function count(req, res) {
   res.status(200).json(result);
 }
 
+/**
+ * Markiert eine Registrierung als abgebrochen.
+ *
+ * @param {object} req Express Request
+ * @param {object} res Express Response
+ */
 async function cancel(req, res) {
   const id = req.params.id;
   const cancelled = await service.cancel(id);
