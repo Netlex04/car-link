@@ -2,7 +2,9 @@
 
 ## Übersicht
 
-`car-link` ist ein Full-Stack-Microservice-Projekt für Connecting-Car-Meetups, bestehend aus:
+> Hinweis: Dies ist eine Demo-Implementierung. Authentifizierung, feingranulare Rollen, Produktions-Security und einige UI-Endpunkte fehlen bewusst (alles ist aktuell als Demo-User-/Gateway-Flow ausgelegt).
+>
+> `car-link` ist ein Full-Stack-Microservice-Projekt für Connecting-Car-Meetups, bestehend aus:
 
 - **Frontend:** `RevMeet Frontend Design` (React/Vite)
 - **Backend-Services:**
