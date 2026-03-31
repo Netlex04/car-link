@@ -1,6 +1,11 @@
 import { mqttTopics } from "../mqtt";
 import * as service from "../services/user.service.js";
 
+/**
+ * Registriert MQTT-Handler für User-bezogene Events.
+ *
+ * @param {object} mqttClient MQTT-Client
+ */
 export default async function registerMqttHandlers(mqttClient) {
   mqttClient.subscribeAsync(mqttTopics.removeUser);
 
@@ -11,6 +16,12 @@ export default async function registerMqttHandlers(mqttClient) {
   });
 }
 
+/**
+ * Verarbeitet removeUser MQTT-Event und löscht Registrierungen des Users.
+ *
+ * @param {Buffer} message MQTT-Nachricht
+ * @param {string} topic MQTT-Topic
+ */
 async function handleRemoveUser(message, topic) {
   const user = JSON.parse(message.toString());
   const userId = user?.userId || user?.user_id || user?.id;

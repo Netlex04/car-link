@@ -1,5 +1,10 @@
 // Copilot generated: Venue service implementing meet-service.yml API + DB schema.
 
+/**
+ * Venue-Service: CRUD-Operationen für Venues.
+ *
+ * Enthält Validierung, Mapping und DB-Transaktionen für das Venue-Entity.
+ */
 import { query, withTransaction } from "../database.js";
 import { throwError } from "../utils.js";
 
@@ -14,6 +19,12 @@ const sql = {
   countMeets: "SELECT COUNT(*) FROM meet WHERE venue_id = $1",
 };
 
+/**
+ * Wandelt eine DB-Zeile in das API-Objekt um.
+ *
+ * @param {object|null} row DB-Zeile oder null
+ * @returns {object|null} Venue-Objekt oder null
+ */
 function rowToVenue(row) {
   if (!row) return null;
   return {
@@ -30,6 +41,12 @@ function rowToVenue(row) {
   };
 }
 
+/**
+ * Validiert Eingabedaten für die Venue-Erstellung.
+ *
+ * @param {object} v roher Venue-Body
+ * @returns {object} bereinigtes Venue für DB-Insert
+ */
 function validateVenueCreate(v) {
   if (!v || typeof v !== "object") {
     throwError(
@@ -58,6 +75,12 @@ function validateVenueCreate(v) {
   };
 }
 
+/**
+ * Validiert Eingabedaten für Venue-Updates.
+ *
+ * @param {object} v roher Update-Body
+ * @returns {object} bereinigtes Venue-Update-Objekt
+ */
 function validateVenueUpdate(v) {
   if (!v || typeof v !== "object") {
     throwError(
@@ -79,11 +102,22 @@ function validateVenueUpdate(v) {
   };
 }
 
+/**
+ * Liefert alle Venues.
+ *
+ * @returns {Promise<Array>} Array von Venue-Objekten
+ */
 export async function search() {
   const result = await query(sql.selectAll);
   return result.rows.map(rowToVenue);
 }
 
+/**
+ * Erstellt eine neue Venue.
+ *
+ * @param {object} venue Venue-Daten
+ * @returns {Promise<object>} Erstellte Venue
+ */
 export async function create(venue) {
   const v = validateVenueCreate(venue);
 
@@ -104,6 +138,12 @@ export async function create(venue) {
   return rowToVenue(created);
 }
 
+/**
+ * Liefert eine Venue per ID.
+ *
+ * @param {string} id Venue-ID
+ * @returns {Promise<object|null>} Venue oder null
+ */
 export async function read(id) {
   if (!id) {
     throwError("BadRequest", "ID is required", 400);
@@ -113,6 +153,13 @@ export async function read(id) {
   return rowToVenue(result.rows[0]);
 }
 
+/**
+ * Aktualisiert eine Venue per ID.
+ *
+ * @param {string} id Venue-ID
+ * @param {object} venue Update-Daten
+ * @returns {Promise<object|null>} Aktualisierte Venue oder null
+ */
 export async function update(id, venue) {
   if (!id) {
     throwError("BadRequest", "ID is required", 400);
@@ -154,6 +201,12 @@ export async function update(id, venue) {
   return rowToVenue(result);
 }
 
+/**
+ * Löscht eine Venue, wenn sie nicht besetzt ist.
+ *
+ * @param {string} id Venue-ID
+ * @returns {Promise<boolean|null>} true bei Erfolg, null wenn nicht gefunden
+ */
 export async function remove(id) {
   if (!id) {
     throwError("BadRequest", "ID is required", 400);

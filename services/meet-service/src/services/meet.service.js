@@ -1,6 +1,11 @@
 // Copilot generated: Implement meet service to match openapi meet-service.yml + database schema.
 // Prompt: "implementiere den meet service nun so, dass er: a: auf das in database.js deinierte schema passt b: Sinnvoll entweder query oder withtransaction benutzt und c: Das zurückgibt, was vom controller erwartet wird"
 
+/**
+ * Meet-Service: CRUD und Zusatzlogik für Meet-Entities.
+ *
+ * Implementiert Filter, Validierung, Transaktionen und MQTT-Events.
+ */
 import { query, withTransaction } from "../database.js";
 import { throwError } from "../utils.js";
 import { mqttClient } from "../mqtt.js";
@@ -24,6 +29,12 @@ const sql = {
   deleteByUser: "DELETE FROM meet WHERE organizer_user_id = $1 RETURNING *",
 };
 
+/**
+ * Konvertiert DB-Antwort in eine Venue-Zusammenfassung für Meet-Objekte.
+ *
+ * @param {object|null} row DB-Zeile
+ * @returns {object|null} Venue-Zusammenfassung oder null
+ */
 function rowToVenueSummary(row) {
   if (!row) return null;
   return {
@@ -33,6 +44,12 @@ function rowToVenueSummary(row) {
   };
 }
 
+/**
+ * Konvertiert DB-Zeile in API-Meet-Objekt.
+ *
+ * @param {object|null} row DB-Zeile
+ * @returns {object|null} Meet-Objekt oder null
+ */
 function rowToMeet(row) {
   if (!row) return null;
   const meet = {
@@ -57,6 +74,12 @@ function rowToMeet(row) {
   return meet;
 }
 
+/**
+ * Validiert Meet-Erstellungsdaten.
+ *
+ * @param {object} meet Eingabeobjekt
+ * @returns {object} bereinigte Meet-Daten
+ */
 function validateMeetCreate(meet) {
   if (!meet || typeof meet !== "object") {
     throwError(
@@ -87,6 +110,12 @@ function validateMeetCreate(meet) {
   };
 }
 
+/**
+ * Validiert Meet-Update-Daten.
+ *
+ * @param {object} meet Update-Objekt
+ * @returns {object} bereinigte Update-Daten
+ */
 function validateMeetUpdate(meet) {
   if (!meet || typeof meet !== "object") {
     throwError(
@@ -111,6 +140,12 @@ function validateMeetUpdate(meet) {
   };
 }
 
+/**
+ * Prüft, ob eine Venue vorhanden ist und wirft 404, wenn nicht.
+ *
+ * @param {string} venueId Venue-ID
+ * @returns {Promise<void>}
+ */
 async function ensureVenueExists(venueId) {
   if (!venueId) {
     throwError("BadRequest", "venueId is required", 400);
@@ -122,6 +157,12 @@ async function ensureVenueExists(venueId) {
   }
 }
 
+/**
+ * Sucht Meetings mit optionalen Filtern.
+ *
+ * @param {object} [filters] Filter: status, from, to, q
+ * @returns {Promise<Array>} Trefferliste
+ */
 export async function search(filters = {}) {
   const conditions = [];
   const params = [];
@@ -153,6 +194,12 @@ export async function search(filters = {}) {
   return result.rows.map(rowToMeet);
 }
 
+/**
+ * Erstellt ein neues Meet (inkl. Venue-Existenzprüfung).
+ *
+ * @param {object} meet Meet-Daten
+ * @returns {Promise<object>} Erstelltes Meet
+ */
 export async function create(meet) {
   const m = validateMeetCreate(meet);
   await ensureVenueExists(m.venueId);
@@ -176,11 +223,24 @@ export async function create(meet) {
   return rowToMeet(response.rows[0]);
 }
 
+/**
+ * Liest ein Meet nach ID.
+ *
+ * @param {string} id Meet-ID
+ * @returns {Promise<object|null>} Meet oder null
+ */
 export async function read(id) {
   const result = await query(sql.selectById, [id]);
   return rowToMeet(result.rows[0]);
 }
 
+/**
+ * Aktualisiert ein Meet.
+ *
+ * @param {string} id Meet-ID
+ * @param {object} meet Update-Daten
+ * @returns {Promise<object|null>} Aktualisiertes Meet oder null
+ */
 export async function update(id, meet) {
   if (!id) {
     throwError("BadRequest", "ID is required", 400);
@@ -230,6 +290,12 @@ export async function update(id, meet) {
   return rowToMeet(result);
 }
 
+/**
+ * Löscht ein Meet und publiziert MQTT-Event.
+ *
+ * @param {string} id Meet-ID
+ * @returns {Promise<object|null>} Gelöschtet Meet oder null
+ */
 export async function remove(id) {
   if (!id) {
     throwError("BadRequest", "ID is required", 400);
@@ -255,6 +321,12 @@ export async function remove(id) {
   return removedMeet;
 }
 
+/**
+ * Markiert ein Meet als CANCELLED und publiziert MQTT-Event.
+ *
+ * @param {string} id Meet-ID
+ * @returns {Promise<object|null>} Geändertes Meet oder null
+ */
 export async function cancel(id) {
   if (!id) {
     throwError("BadRequest", "ID is required", 400);
@@ -283,7 +355,12 @@ export async function cancel(id) {
   return cancelledMeet;
 }
 
-// MQTT handlers for external events
+/**
+ * MQTT handler: Löscht Meets eines Benutzers.
+ *
+ * @param {string} userId Benutzer-ID
+ * @returns {Promise<void>}
+ */
 export async function removeByUserId(userId) {
   if (!userId) {
     throwError("BadRequest", "userId is required", 400);

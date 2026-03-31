@@ -3,6 +3,11 @@ import { throwError } from "../utils.js";
 
 const prefix = "/meets";
 
+/**
+ * Registriert Meet-Routen.
+ *
+ * @param {object} app Express app
+ */
 export default function registerRoutes(app) {
   app.get(`${prefix}`, search);
   app.post(`${prefix}`, create);
@@ -12,16 +17,34 @@ export default function registerRoutes(app) {
   app.delete(`${prefix}/:id`, remove);
 }
 
+/**
+ * Sucht Meets mit Query-Parametern.
+ *
+ * @param {object} req Express Request
+ * @param {object} res Express Response
+ */
 async function search(req, res) {
   const meets = await service.search(req.query);
   res.status(200).json(meets);
 }
 
+/**
+ * Legt ein neues Meet an.
+ *
+ * @param {object} req Express Request
+ * @param {object} res Express Response
+ */
 async function create(req, res) {
   const result = await service.create(req.body);
   res.status(201).json(result);
 }
 
+/**
+ * Gibt ein Meet per ID zurück.
+ *
+ * @param {object} req Express Request
+ * @param {object} res Express Response
+ */
 async function read(req, res) {
   const meet = await service.read(req.params.id);
   if (meet) {
@@ -31,6 +54,12 @@ async function read(req, res) {
   }
 }
 
+/**
+ * Aktualisiert ein Meet per ID.
+ *
+ * @param {object} req Express Request
+ * @param {object} res Express Response
+ */
 async function update(req, res) {
   const result = await service.update(req.params.id, req.body);
   if (result) {
@@ -40,6 +69,12 @@ async function update(req, res) {
   }
 }
 
+/**
+ * Löscht ein Meet per ID.
+ *
+ * @param {object} req Express Request
+ * @param {object} res Express Response
+ */
 async function remove(req, res) {
   const meet = await service.remove(req.params.id);
   if (meet) {
@@ -49,6 +84,12 @@ async function remove(req, res) {
   }
 }
 
+/**
+ * Markiert ein Meet als abgebrochen.
+ *
+ * @param {object} req Express Request
+ * @param {object} res Express Response
+ */
 async function cancel(req, res) {
   const id = req.params.id;
   const cancelled = await service.cancel(id);
