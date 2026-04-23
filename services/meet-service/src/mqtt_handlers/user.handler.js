@@ -1,5 +1,6 @@
-import { mqttTopics } from "../mqtt";
-import * as service from "../services/user.service.js";
+import { logger } from "../utils.js";
+import { mqttTopics } from "../mqtt.js";
+import * as service from "../services/meet.service.js";
 
 /**
  * Registriert MQTT-Handler für User-bezogene Events.
