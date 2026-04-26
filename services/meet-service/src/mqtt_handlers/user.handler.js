@@ -18,7 +18,7 @@ export default async function registerMqttHandlers(mqttClient) {
 }
 
 /**
- * Verarbeitet removeUser MQTT-Event und löscht Registrierungen des Users.
+ * Verarbeitet removeUser MQTT-Event und löscht Meets, deren Organisator der entfernte User ist.
  *
  * @param {Buffer} message MQTT-Nachricht
  * @param {string} topic MQTT-Topic
@@ -42,9 +42,9 @@ async function handleRemoveUser(message, topic) {
   service
     .removeByUserId(userId)
     .then(() => {
-      logger.info(`Removed registrations for user ID ${userId}`);
+      logger.info(`Removed meetings for user ID ${userId}`);
     })
     .catch((err) => {
-      logger.error(`Error removing registrations for user ID ${userId}:`, err);
+      logger.error(`Error removing meetings for user ID ${userId}:`, err);
     });
 }
